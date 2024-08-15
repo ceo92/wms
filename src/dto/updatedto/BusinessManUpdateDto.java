@@ -8,5 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BusinessManUpdateDto {
-
+  private String name;
+  private String phoneNumber;
+  private String businessNum; //사업자번호
+  private String businessName; //상호명
 }

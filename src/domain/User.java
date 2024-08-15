@@ -10,7 +10,7 @@ import lombok.Setter;
 // DB와 자바는 매핑 방법이 다르므로
 
 @Getter @Setter
-public abstract class User {
+public class User {
   private Integer id;//PK
   private String name; //이름
   private String phoneNumber; //핸드폰 번호
