@@ -1,5 +1,6 @@
 package service;
 
+import dao.UserDao;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
@@ -10,11 +11,10 @@ import domain.WarehouseManager;
 import dto.DeliveryManDto;
 import dto.BusinessManDto;
 import dto.WarehouseManagerDto;
-import dao.UserDao;
 
 public class UserService { //스프링 시큐리티의 UserDetails를 서비스에서 implements 함 ,
 
-  private static final UserDao USER_DAO = new UserDao(); //DI , 하지만 스프링 없으니 불가능 , OCP DIP 위배 ㅜㅜ
+  private static final UserDao userDao = new UserDao(); //DI , 하지만 스프링 없으니 불가능 , OCP DIP 위배 ㅜㅜ
 
   /**
    * -- 회원가입 검증 --
@@ -44,7 +44,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
 
       User user = new DeliveryMan(businessName, businessNum, name, phoneNumber, loginEmail,
           password);
-      Integer saveId = USER_DAO.save(user, con);
+      Integer saveId = userDao.save(user, con);
       con.commit();
       return saveId;
     } catch (IllegalArgumentException e) {
@@ -79,7 +79,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
       validateBeforeJoin(loginEmail, password, rePassword ,con);
 
       User user = new DeliveryMan(deliveryManNum ,carNum , name, phoneNumber, loginEmail, password);
-      Integer saveId = USER_DAO.save(user, con);
+      Integer saveId = userDao.save(user, con);
       con.commit();
       return saveId;
     }catch (IllegalArgumentException e){
@@ -108,7 +108,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
       validateBeforeJoin(loginEmail, password, rePassword ,con);
 
       User user = new WarehouseManager(name, phoneNumber, loginEmail, password);
-      Integer saveId = USER_DAO.save(user, con);
+      Integer saveId = userDao.save(user, con);
       con.commit();
       return saveId;
     }catch (IllegalArgumentException e){
@@ -126,7 +126,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
 
 
   public User findUser(Integer id){
-    return USER_DAO.findById(id).orElse(null);
+    return userDao.findById(id).orElse(null);
   }
 
   /**
@@ -134,7 +134,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
    */
   private static void validateBeforeJoin(String loginEmail, String password, String rePassword , Connection con) {
     //1. 이미 존재하는 아이디인지
-    USER_DAO.findByLoginEmail(loginEmail , con).ifPresent(a -> {
+    userDao.findByLoginEmail(loginEmail , con).ifPresent(a -> {
       throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
     });
 
@@ -164,12 +164,12 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
     Connection con = getConnection();
     con.setReadOnly(true);
     //이미 권한 다 할당된 사용자
-    User user = USER_DAO.findByLoginEmail(loginEmail, con)
-        .filter(u -> u.getPassword().equals(password))
-        .orElseThrow(() -> new IllegalArgumentException("로그인 아이디 혹은 비밀번호를 다시 한 번 확인해주세요"));
+    User findUser = userDao.findAll(con).stream()
+        .filter(user -> user.getPassword().equals(loginEmail) && user.getLoginEmail().equals(password))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("아이디 혹은 비밀번호가 일치하지 않습니다."));
     closeConnection(con);
-    return user;
-
+    return findUser;
   }
 
   public void logout(User user){
