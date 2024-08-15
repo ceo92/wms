@@ -3,12 +3,11 @@ package controller;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.http.HttpRequest;
 import java.sql.SQLException;
 import domain.User;
-import dto.DeliveryManDto;
-import dto.BusinessManDto;
-import dto.WarehouseManagerDto;
+import dto.savedto.DeliveryManSaveDto;
+import dto.savedto.BusinessManSaveDto;
+import dto.savedto.WarehouseManagerSaveDto;
 import service.UserService;
 
 public class MainController {
@@ -65,11 +64,11 @@ public class MainController {
               String businessManPassword = br.readLine();
               System.out.print("비밀번호 재입력 ");
               String businessManRePassword = br.readLine();
-              BusinessManDto businessManDto = new BusinessManDto(businessManName,
+              BusinessManSaveDto businessManSaveDto = new BusinessManSaveDto(businessManName,
                   businessManPhoneNumber, businessManLoginEmail, businessManPassword,
                   businessManRePassword, businessNum, businessName);
               //사업자 id 리턴
-              loginUserId = userService.businessManJoin(businessManDto);//회원가입 성공하면 다시 초기 화면으로 돌아가서 로그인 되게끔
+              loginUserId = userService.businessManJoin(businessManSaveDto);//회원가입 성공하면 다시 초기 화면으로 돌아가서 로그인 되게끔
               //사업자 id를 통해 조회
               break;
 
@@ -84,9 +83,9 @@ public class MainController {
               String whmPassword = br.readLine();
               System.out.print("비밀번호 재입력 ");
               String whmRePassword = br.readLine();
-              WarehouseManagerDto warehouseManagerDto = new WarehouseManagerDto(whmName,
+              WarehouseManagerSaveDto warehouseManagerSaveDto = new WarehouseManagerSaveDto(whmName,
                   whmPhoneNumber, whmLoginEmail, whmPassword, whmRePassword);
-              loginUserId = userService.warehouseManagerJoin(warehouseManagerDto);
+              loginUserId = userService.warehouseManagerJoin(warehouseManagerSaveDto);
               break;
 
             case 3:
@@ -104,9 +103,9 @@ public class MainController {
               String dmPassword = br.readLine();
               System.out.print("비밀번호 재입력 ");
               String dmRePassword = br.readLine();
-              DeliveryManDto deliveryManDto = new DeliveryManDto(dmName, dmPhoneNumber,
+              DeliveryManSaveDto deliveryManSaveDto = new DeliveryManSaveDto(dmName, dmPhoneNumber,
                   dmLoginEmail, dmPassword, dmRePassword, dmNum, dmCarNum);
-              loginUserId = userService.deliveryManJoin(deliveryManDto);
+              loginUserId = userService.deliveryManJoin(deliveryManSaveDto);
               break;
 
             default:

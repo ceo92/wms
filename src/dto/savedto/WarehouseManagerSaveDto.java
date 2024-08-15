@@ -1,11 +1,11 @@
-package dto;
+package dto.savedto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class WarehouseManagerDto {
+public class WarehouseManagerSaveDto {
   private String name; //사업자 이름
   private String phoneNumber; //핸드폰 번호
   private String loginEmail; //로그인 아이디(이메일 형식)

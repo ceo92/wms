@@ -8,9 +8,9 @@ import connection.HikariCpDBConnectionUtil;
 import domain.DeliveryMan;
 import domain.User;
 import domain.WarehouseManager;
-import dto.DeliveryManDto;
-import dto.BusinessManDto;
-import dto.WarehouseManagerDto;
+import dto.savedto.DeliveryManSaveDto;
+import dto.savedto.BusinessManSaveDto;
+import dto.savedto.WarehouseManagerSaveDto;
 
 public class UserService { //스프링 시큐리티의 UserDetails를 서비스에서 implements 함 ,
 
@@ -26,20 +26,20 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
    * User
    */
 
-  public Integer businessManJoin(BusinessManDto businessManDto)
+  public Integer businessManJoin(BusinessManSaveDto businessManSaveDto)
       throws SQLException { //SQLException은 어차피 처리 못해 db 에러이니 그냥 JVM까지 던지는 수밖에 없다. 오류 화면을 보여주거나 오류 api를 던지는 @ControllerAdvice의 @ExceptionHandler이 있는 것도 아니고
     Connection con = null;
     try {
       con = getConnection();
       con.setAutoCommit(false);
 
-      String businessName = businessManDto.getBusinessName();
-      String businessNum = businessManDto.getBusinessNum();
-      String name = businessManDto.getName();
-      String phoneNumber = businessManDto.getPhoneNumber();
-      String loginEmail = businessManDto.getLoginEmail();
-      String password = businessManDto.getPassword();
-      String rePassword = businessManDto.getRePassword();
+      String businessName = businessManSaveDto.getBusinessName();
+      String businessNum = businessManSaveDto.getBusinessNum();
+      String name = businessManSaveDto.getName();
+      String phoneNumber = businessManSaveDto.getPhoneNumber();
+      String loginEmail = businessManSaveDto.getLoginEmail();
+      String password = businessManSaveDto.getPassword();
+      String rePassword = businessManSaveDto.getRePassword();
       validateBeforeJoin(loginEmail, password, rePassword, con);
 
       User user = new DeliveryMan(businessName, businessNum, name, phoneNumber, loginEmail,
@@ -63,19 +63,19 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
 
 
 
-  public Integer deliveryManJoin(DeliveryManDto deliveryManDto) throws SQLException {
+  public Integer deliveryManJoin(DeliveryManSaveDto deliveryManSaveDto) throws SQLException {
     Connection con = null;
     try {
       con = getConnection();
       con.setAutoCommit(false);
 
-      String deliveryManNum = deliveryManDto.getDeliveryManNum();
-      String carNum = deliveryManDto.getCarNum();
-      String name = deliveryManDto.getName();
-      String phoneNumber = deliveryManDto.getPhoneNumber();
-      String loginEmail = deliveryManDto.getLoginEmail();
-      String password = deliveryManDto.getPassword();
-      String rePassword = deliveryManDto.getRePassword();
+      String deliveryManNum = deliveryManSaveDto.getDeliveryManNum();
+      String carNum = deliveryManSaveDto.getCarNum();
+      String name = deliveryManSaveDto.getName();
+      String phoneNumber = deliveryManSaveDto.getPhoneNumber();
+      String loginEmail = deliveryManSaveDto.getLoginEmail();
+      String password = deliveryManSaveDto.getPassword();
+      String rePassword = deliveryManSaveDto.getRePassword();
       validateBeforeJoin(loginEmail, password, rePassword ,con);
 
       User user = new DeliveryMan(deliveryManNum ,carNum , name, phoneNumber, loginEmail, password);
@@ -94,17 +94,17 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
     return null;
   }
 
-  public Integer warehouseManagerJoin(WarehouseManagerDto warehouseManagerDto) throws SQLException {
+  public Integer warehouseManagerJoin(WarehouseManagerSaveDto warehouseManagerSaveDto) throws SQLException {
     Connection con = null;
     try {
       con = getConnection();
       con.setAutoCommit(false);
 
-      String name = warehouseManagerDto.getName();
-      String phoneNumber = warehouseManagerDto.getPhoneNumber();
-      String loginEmail = warehouseManagerDto.getLoginEmail();
-      String password = warehouseManagerDto.getPassword();
-      String rePassword = warehouseManagerDto.getRePassword();
+      String name = warehouseManagerSaveDto.getName();
+      String phoneNumber = warehouseManagerSaveDto.getPhoneNumber();
+      String loginEmail = warehouseManagerSaveDto.getLoginEmail();
+      String password = warehouseManagerSaveDto.getPassword();
+      String rePassword = warehouseManagerSaveDto.getRePassword();
       validateBeforeJoin(loginEmail, password, rePassword ,con);
 
       User user = new WarehouseManager(name, phoneNumber, loginEmail, password);

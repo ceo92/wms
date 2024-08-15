@@ -1,4 +1,4 @@
-package dto;
+package dto.savedto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.Data;
 //컨트롤러에서 주입받는 용도
 @Data
 @AllArgsConstructor
-public class DeliveryManDto {
+public class DeliveryManSaveDto {
   private String name; //배송기사 이름
   private String phoneNumber; //핸드폰 번호
   private String loginEmail; //로그인 아이디(이메일 형식)
