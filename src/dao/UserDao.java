@@ -210,34 +210,49 @@ public class UserDao {
 
   //어차피 user의 id랑 사업자의 id랑 똑같을 거 아니야 ??비식별 관계니까
   public List<User> findAllByRoleType(RoleType roleType , Connection con) throws SQLException {
-    if (roleType == BUSINESS_MAN){
-      String sql = "select * from user u join business_man b and u.id = b.id";
-
-    }
-
-
+    StringBuilder sql = new StringBuilder();
+    sql.append("select ").append("* ").append("from ").append("user u ");
     PreparedStatement pstmt = null;
     ResultSet rs = null;
-    try{
-      pstmt = con.prepareStatement(sql);
-      pstmt.setString(1 , roleType.name());
-      rs = pstmt.executeQuery();
-      if (roleType == BUSINESS_MAN){
-        String businessManSql = "select * from business_man";
+    List<User> users = new ArrayList<>();
+    try {
+      if (roleType == BUSINESS_MAN) {
+        sql.append("join ").append("business_man b").append("and u.id = b.id");
+        pstmt = con.prepareStatement(sql.toString());
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+          BusinessMan businessMan = new BusinessMan(rs.getInt("id"), rs.getString("name")
+              , rs.getString("phone_number"), rs.getString("login_email"), rs.getString("password"),
+              roleType, rs.getString("business_num"), rs.getString("business_name")
+          );
+          users.add(businessMan);
+        }
+      } else if (roleType == DELIVERY_MAN) {
+        sql.append("join ").append("delivery_man d").append("and u.id = d.id");
+        pstmt = con.prepareStatement(sql.toString());
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+          DeliveryMan deliveryMan = new DeliveryMan(rs.getInt("id"), rs.getString("name")
+              , rs.getString("phone_number"), rs.getString("login_email"), rs.getString("password"),
+              roleType, rs.getString("delivery_man_num"), rs.getString("car_num")
+          );
+          users.add(deliveryMan);
+        }
+      } else {
+        pstmt = con.prepareStatement(sql.toString());
+        rs = pstmt.executeQuery();
+        if (rs.next()) {
+          User user = new User(rs.getInt("id"), rs.getString("name")
+              , rs.getString("phone_number"), rs.getString("login_email"), rs.getString("password"),
+              roleType);
+          users.add(user);
+        }
       }
-      else if (roleType == DELIVERY_MAN){
 
-      }
-
-
-
-
-
-
+      return users;
     }catch (SQLException e){
-      throw e; //그냥 throws SQLException 적어도 되지만, 반드시 close() 실행 위하여 !
-    }
-    finally {
+      throw e;
+    }finally {
       close(pstmt , rs);
     }
   }
