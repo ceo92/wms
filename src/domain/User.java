@@ -19,7 +19,7 @@ public class User {
   private String phoneNumber; //핸드폰 번호
   private String loginEmail; //로그인 아이디(이메일 형식)
   private String password; //비밀번호 SHA-256
-  private RoleType roleType; //권한
+  private RoleType roleType; //권한 및 DTYPE
 
 
   public User(String name, String phoneNumber, String loginEmail, String password, RoleType roleType) {

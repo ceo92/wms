@@ -31,7 +31,7 @@ public class UserDao {
    */
   public Integer save(User user , Connection con) throws SQLException {
     //PreparedStatement는 각각의 쿼리에 지정해줘야됨
-    String superTableSql = "insert into user(name , phone_number , login_email , password , dtype , role_type) values(? , ? , ? , ?, ?, ?)";
+    String superTableSql = "insert into user(name , phone_number , login_email , password , role_type) values(? , ? , ? , ? , ?)";
     String subTableSql = null;
     PreparedStatement superTablePstmt = null;
     PreparedStatement subTablePstmt = null;
@@ -49,29 +49,23 @@ public class UserDao {
       generatedId = rs.getInt(1); //첫번째 할당된 PK
     }
     //WAREHOUSE_MANAGER일 때는 추가적으로
-    switch (user.getRoleType()){
-      case DELIVERY_MAN:
-        DeliveryMan deliveryMan = (DeliveryMan) user;
-        subTableSql = "insert into delivery_man values(? ,? , ?)";
-        subTablePstmt = con.prepareStatement(subTableSql);
+    if (user instanceof DeliveryMan deliveryMan){
+      subTableSql = "insert into delivery_man values(? ,? , ?)";
+      subTablePstmt = con.prepareStatement(subTableSql);
 
-        subTablePstmt.setInt(1 , generatedId); //슈퍼타입테이블의 Generated된 PK 값 할당
-        subTablePstmt.setString(2 , deliveryMan.getDeliveryManNum());
-        subTablePstmt.setString(3 , deliveryMan.getCarNum());
-        subTablePstmt.executeUpdate();
-        break;
+      subTablePstmt.setInt(1 , generatedId); //슈퍼타입테이블의 Generated된 PK 값 할당
+      subTablePstmt.setString(2 , deliveryMan.getDeliveryManNum());
+      subTablePstmt.setString(3 , deliveryMan.getCarNum());
+      subTablePstmt.executeUpdate();
+    }
+    else if (user instanceof BusinessMan businessMan){
+      subTableSql = "insert into business_man values(? , ? , ?)";
+      subTablePstmt = con.prepareStatement(subTableSql); //이렇게 하면 User과 식별관계인 BusinessMan테이블에 User의 PK 값이 자동으로 삽입됨
 
-      case BUSINESS_MAN:
-        BusinessMan businessMan = (BusinessMan) user;
-        subTableSql = "insert into business_man values(? , ? , ?)";
-        subTablePstmt = con.prepareStatement(subTableSql); //이렇게 하면 User과 식별관계인 BusinessMan테이블에 User의 PK 값이 자동으로 삽입됨
-
-        subTablePstmt.setInt(1 , generatedId); //슈퍼타입테이블의  Generated된 PK 값 할당
-        subTablePstmt.setString(2 , businessMan.getBusinessName());
-        subTablePstmt.setString(3 , businessMan.getBusinessName());
-        subTablePstmt.executeUpdate();
-        break;
-
+      subTablePstmt.setInt(1 , generatedId); //슈퍼타입테이블의  Generated된 PK 값 할당
+      subTablePstmt.setString(2 , businessMan.getBusinessName());
+      subTablePstmt.setString(3 , businessMan.getBusinessName());
+      subTablePstmt.executeUpdate();
     }
 
     //커넥션 연결 => 쿼리 요청 역순으로 close
@@ -210,7 +204,43 @@ public class UserDao {
   }*/
 
 
+  /**
+   * 권한 별로 조회하기
+   */
 
+  //어차피 user의 id랑 사업자의 id랑 똑같을 거 아니야 ??비식별 관계니까
+  public List<User> findAllByRoleType(RoleType roleType , Connection con) throws SQLException {
+    if (roleType == BUSINESS_MAN){
+      String sql = "select * from user u join business_man b and u.id = b.id";
+
+    }
+
+
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    try{
+      pstmt = con.prepareStatement(sql);
+      pstmt.setString(1 , roleType.name());
+      rs = pstmt.executeQuery();
+      if (roleType == BUSINESS_MAN){
+        String businessManSql = "select * from business_man";
+      }
+      else if (roleType == DELIVERY_MAN){
+
+      }
+
+
+
+
+
+
+    }catch (SQLException e){
+      throw e; //그냥 throws SQLException 적어도 되지만, 반드시 close() 실행 위하여 !
+    }
+    finally {
+      close(pstmt , rs);
+    }
+  }
 
 //서비스에서 dto를 domain으로 변경하고 주입해줌 , 트랜잭션 서비스에서 시작해야하므로 User객체 생성 서비스에서 해줌!
   public void update(User user,  Connection con) throws SQLException {
@@ -251,29 +281,7 @@ public class UserDao {
   }
 
   public List<User> findAll(){
-    List<Board> list = new ArrayList<>();
-    String sql = "select * from Board";
 
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
-
-    try {
-      pstmt = con.prepareStatement(sql);
-      rs = pstmt.executeQuery();
-      while (rs.next()) {
-        list.add(new Board(rs.getInt("bno"),
-            rs.getString("title"),
-            rs.getString("content"),
-            rs.getString("writer"),
-            rs.getDate("date").toLocalDate()));
-      }
-      return list;
-    } catch (SQLException e) {
-      throw e;
-    }finally {
-      //커넥션 연결 => 쿼리 요청 역순으로 close
-      close(pstmt, rs);
-    }
   }
 
   public void removeUser(User user){
