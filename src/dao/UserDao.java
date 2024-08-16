@@ -213,27 +213,41 @@ public class UserDao {
 
 
 //서비스에서 dto를 domain으로 변경하고 주입해줌 , 트랜잭션 서비스에서 시작해야하므로 User객체 생성 서비스에서 해줌!
-  public void update(User user,  Connection con){
-    String sql = "update  set title = ? , content = ? , writer = ? where bno = ?";
-    PreparedStatement pstmt = null;
+  public void update(User user,  Connection con) throws SQLException {
+    String sql = "update user set name = ? , phone_number = ?  where id = ?";
+    PreparedStatement firstPstmt = null;
+    PreparedStatement secondPstmt = null;
+
     try {
-      pstmt = con.prepareStatement(sql);
-      pstmt.setString(1, boardUpdateDto.getBtitle());
-      pstmt.setString(2, boardUpdateDto.getBcontent());
-      pstmt.setString(3, boardUpdateDto.getBwriter());
-      pstmt.setInt(4, boardUpdateDto.getBno());
-      pstmt.executeUpdate();
-    } catch (SQLException e) {
+      firstPstmt = con.prepareStatement(sql);
+      firstPstmt.setString(1 , user.getName());
+      firstPstmt.setString(2, user.getPhoneNumber());
+      firstPstmt.setInt(3 , user.getId());
+      firstPstmt.executeUpdate();
+      if (user instanceof BusinessMan businessMan){
+        String businessManSql = "update business_man set business_num = ? , business_name = ? where id = ?";
+        secondPstmt = con.prepareStatement(businessManSql);
+        secondPstmt.setString(1 , businessMan.getBusinessNum());
+        secondPstmt.setString(2 , businessMan.getBusinessName());
+        secondPstmt.setInt(3 , businessMan.getId());
+        secondPstmt.executeUpdate();
+      }
+      else if (user instanceof DeliveryMan deliveryMan){
+        String businessManSql = "update delivery_man set delivery_man_num = ? , car_num = ? where id = ?";
+        secondPstmt = con.prepareStatement(businessManSql);
+        secondPstmt.setString(1 , deliveryMan.getDeliveryManNum());
+        secondPstmt.setString(2 , deliveryMan.getCarNum());
+        secondPstmt.setInt(3 , deliveryMan.getId());
+        secondPstmt.executeUpdate();
+      }
+
+
+    }catch (SQLException e){
       throw e;
-    } finally {
-      //커넥션 연결 => 쿼리 요청 역순으로 close
-      close(pstmt, null);
+
+    }finally {
+      close(firstPstmt , null);
     }
-  }
-
-
-  public Optional<User> findByLoginEmail(String loginEmail , Connection con){
-    return store.values().stream().filter(user -> user.getLoginEmail().equals(loginEmail)).findFirst();
   }
 
   public List<User> findAll(){
