@@ -7,6 +7,7 @@ import domain.BusinessMan;
 import domain.DeliveryMan;
 import domain.RoleType;
 import domain.User;
+import dto.updatedto.DeliveryManUpdateDto;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -152,8 +153,8 @@ public class UserDao {
     return Optional.empty();
   }
 
-
-  public void update(Integer userId , DeliveryManUpdateDto deliveryManUpdateDto,  Connection con){
+//서비스에서 dto를 domain으로 변경하고 주입해줌 , 트랜잭션 서비스에서 시작해야하므로 User객체 생성 서비스에서 해줌!
+  public void update(User user,  Connection con){
     String sql = "update  set title = ? , content = ? , writer = ? where bno = ?";
     PreparedStatement pstmt = null;
     try {
@@ -297,7 +298,7 @@ public class UserDao {
     }
   }
 
-  public void update(Connection con, BoardUpdateDto boardUpdateDto) throws SQLException {
+  public void update(BoardUpdateDto boardUpdateDto) throws SQLException {
     String sql = "update Board set title = ? , content = ? , writer = ? where bno = ?";
     PreparedStatement pstmt = null;
     try {
@@ -316,7 +317,7 @@ public class UserDao {
   }
 
 
-  public List<Board> findAll(Connection con) throws SQLException {
+  public List<User> findAll(Connection con) throws SQLException {
     List<Board> list = new ArrayList<>();
     String sql = "select * from Board";
 

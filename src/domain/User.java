@@ -1,5 +1,6 @@
 package domain;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import lombok.Setter;
  */
 // DB와 자바는 매핑 방법이 다르므로
 
-@Getter @Setter
+@Getter @Setter(AccessLevel.PROTECTED)
 public class User {
   private Integer id;//PK
   private String name; //이름

@@ -9,4 +9,9 @@ public class WarehouseManager extends User{
     super(name , phoneNumber , loginEmail , password);
   }
 
+  public void changeBasicInformation(String name , String phoneNumber){
+    setName(name);
+    setPhoneNumber(phoneNumber);
+  }
+
 }

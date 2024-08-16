@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class WarehouseManagerUpdateDto {
   private String name; //사업자 이름
   private String phoneNumber; //핸드폰 번호

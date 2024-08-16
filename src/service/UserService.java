@@ -1,6 +1,10 @@
 package service;
 
 import dao.UserDao;
+import domain.BusinessMan;
+import dto.updatedto.BusinessManUpdateDto;
+import dto.updatedto.DeliveryManUpdateDto;
+import dto.updatedto.WarehouseManagerUpdateDto;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
@@ -124,6 +128,76 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
     return null;
   }
 
+
+  //DTO 십년 때매 어쩔 수 없이 등록 , 수정 분리해줘야됨!
+
+  public void updateWarehouseManager(Integer id , WarehouseManagerUpdateDto warehouseManagerUpdateDto)
+      throws SQLException {
+    Connection con = null;
+    try {
+      con = getConnection();
+      con.setAutoCommit(false);
+      WarehouseManager warehouseManager = (WarehouseManager) findUser(id);
+      warehouseManager.changeBasicInformation(
+          warehouseManagerUpdateDto.getName(),
+          warehouseManagerUpdateDto.getPhoneNumber()
+      );
+      userDao.update(warehouseManager, con);
+      con.commit();
+    }catch (SQLException e) {
+      con.rollback();
+      System.out.println("수정에 오류가 발생하였습니다");
+    }
+    finally {
+      closeConnection(con);
+    }
+
+  }
+  public void updateBusinessMan(Integer id , BusinessManUpdateDto businessManUpdateDto) throws SQLException {
+    Connection con = null;
+    try {
+      con = getConnection();
+      con.setAutoCommit(false);
+      BusinessMan businessMan = (BusinessMan) findUser(id);
+      businessMan.changeBasicInformation(
+          businessManUpdateDto.getName(),
+          businessManUpdateDto.getPhoneNumber(),
+          businessManUpdateDto.getBusinessNum(),
+          businessManUpdateDto.getBusinessName()
+      );
+      userDao.update(businessMan, con);
+      con.commit();
+    }catch (SQLException e) {
+      con.rollback();
+      System.out.println("수정에 오류가 발생하였습니다");
+    }
+    finally {
+      closeConnection(con);
+    }
+  }
+  public void updateDeliveryMan(Integer id , DeliveryManUpdateDto deliveryManUpdateDto)
+      throws SQLException {
+    Connection con = null;
+    try {
+      con = getConnection();
+      con.setAutoCommit(false);
+      DeliveryMan deliveryMan = (DeliveryMan) findUser(id);
+      deliveryMan.changeBasicInformation(
+          deliveryManUpdateDto.getName(),
+          deliveryManUpdateDto.getPhoneNumber(),
+          deliveryManUpdateDto.getDeliveryManNum(),
+          deliveryManUpdateDto.getCarNum()
+      );
+      userDao.update(deliveryMan, con);
+      con.commit();
+    }catch (SQLException e) {
+      con.rollback();
+      System.out.println("수정에 오류가 발생하였습니다");
+    }
+    finally {
+      closeConnection(con);
+    }
+  }
 
   public User findUser(Integer id){
     return userDao.findById(id).orElse(null);

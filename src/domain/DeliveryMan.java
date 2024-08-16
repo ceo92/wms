@@ -13,4 +13,10 @@ public class DeliveryMan extends User{
     this.deliveryManNum = deliveryManNum;
   }
 
+  public void changeBasicInformation(String name, String phoneNumber , String deliveryManNum , String carNum) {
+    setName(name);
+    setPhoneNumber(phoneNumber);
+    setDeliveryManNum(deliveryManNum);
+    setCarNum(carNum);
+  }
 }
