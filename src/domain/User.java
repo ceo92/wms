@@ -1,6 +1,8 @@
 package domain;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,16 +19,24 @@ public class User {
   private String phoneNumber; //핸드폰 번호
   private String loginEmail; //로그인 아이디(이메일 형식)
   private String password; //비밀번호 SHA-256
-  private String dType; //DTYPE 어느 자식의 데이터인지를 식별하기 위한 값
   private RoleType roleType; //권한
 
-  public User(String name , String phoneNumber , String loginEmail , String password){
-    this.name =name;
+
+  public User(String name, String phoneNumber, String loginEmail, String password, RoleType roleType) {
+    this.name = name;
     this.phoneNumber = phoneNumber;
     this.loginEmail = loginEmail;
     this.password = password;
+    this.roleType = roleType;
   }
 
-
-
+  public User(Integer id, String name, String phoneNumber, String loginEmail, String password,
+      RoleType roleType) {
+    this.id = id;
+    this.name = name;
+    this.phoneNumber = phoneNumber;
+    this.loginEmail = loginEmail;
+    this.password = password;
+    this.roleType = roleType;
+  }
 }

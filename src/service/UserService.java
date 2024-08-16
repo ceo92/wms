@@ -199,8 +199,15 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
     }
   }
 
-  public User findUser(Integer id){
-    return userDao.findById(id).orElse(null);
+  public User findUser(Integer id) throws SQLException {
+    Connection con = getConnection();
+    con.setReadOnly(true);
+    User findUser = userDao.findById(id, con)
+        .orElseThrow(() -> new IllegalArgumentException("찾으려는 회원 정보가 존재하지 않습니다")); //컨트롤러에서 처리하게 할까
+    con.setReadOnly(false);
+    closeConnection(con);
+    return findUser;
+
   }
 
   /**

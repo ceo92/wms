@@ -12,8 +12,17 @@ public class BusinessMan extends User {
   private String businessNum; //사업자번호 , PK가 아님
   private String businessName; //상호명
 
-  public BusinessMan(String businessNum , String businessName , String name ,String phoneNumber ,String loginEmail ,String password){
-    super(name , phoneNumber , loginEmail , password);
+  public BusinessMan(String businessNum, String businessName, String name, String phoneNumber,
+      String loginEmail, String password, RoleType roleType) {
+    super(name, phoneNumber, loginEmail, password  ,roleType);
+    this.businessNum = businessNum;
+    this.businessName = businessName;
+  }
+
+  public BusinessMan(Integer id, String name, String phoneNumber, String loginEmail,
+      String password,
+      RoleType roleType, String businessNum, String businessName) {
+    super(id, name, phoneNumber, loginEmail, password, roleType);
     this.businessNum = businessNum;
     this.businessName = businessName;
   }

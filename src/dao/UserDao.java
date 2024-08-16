@@ -7,7 +7,6 @@ import domain.BusinessMan;
 import domain.DeliveryMan;
 import domain.RoleType;
 import domain.User;
-import dto.updatedto.DeliveryManUpdateDto;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,6 +26,9 @@ import java.util.Optional;
 public class UserDao {
 
 
+  /**
+   * 둘 다 해보자 PreparedStatement 하나랑 두 개일 때 둘 다 해보자 !
+   */
   public Integer save(User user , Connection con) throws SQLException {
     //PreparedStatement는 각각의 쿼리에 지정해줘야됨
     String superTableSql = "insert into user(name , phone_number , login_email , password , dtype , role_type) values(? , ? , ? , ?, ?, ?)";
@@ -79,7 +81,61 @@ public class UserDao {
   }
 
 
-  public Optional<User> findById(Integer id , RoleType roleType , Connection con) throws SQLException {
+  public Optional<User> findById(Integer id , Connection con) throws SQLException {
+    String sql = "select * from user where id = ?";
+    PreparedStatement firstPstmt = null;
+    PreparedStatement secondPstmt = null;
+
+    ResultSet firstRs = null;
+    ResultSet secondRs = null;
+    String name = null, phoneNumber = null, loginEmail = null , password = null;
+    RoleType roleType = null;
+
+    try {
+      firstPstmt = con.prepareStatement(sql);
+      firstPstmt.setInt(1 , id);
+      firstRs = firstPstmt.executeQuery();
+      if (firstRs.next()) {
+        name = firstRs.getString("name");
+        phoneNumber = firstRs.getString("phone_number");
+        loginEmail = firstRs.getString("login_email");
+        password = firstRs.getString("password");
+        roleType = RoleType.valueOf(firstRs.getString("role_type"));
+      }
+
+      if (roleType == BUSINESS_MAN){
+        String businessManSql = sql.replace("user", "business_man");
+        secondPstmt = con.prepareStatement(businessManSql);
+        secondPstmt.setInt(1, id);
+        secondRs = secondPstmt.executeQuery();
+        if (secondRs.next()) {
+          BusinessMan businessMan = new BusinessMan(id , name , phoneNumber , loginEmail , password , roleType ,
+              secondRs.getString("business_num") ,secondRs.getString("business_name"));
+          return Optional.of(businessMan);
+        }
+      } else if (roleType == DELIVERY_MAN){
+        String deliveryManSql = sql.replace("user", "delivery_man");
+        secondPstmt = con.prepareStatement(deliveryManSql);
+        secondPstmt.setInt(1, id);
+        secondRs = secondPstmt.executeQuery();
+        if (secondRs.next()) {
+          DeliveryMan deliveryMan = new DeliveryMan(id, name, phoneNumber, loginEmail, password , roleType,
+              secondRs.getString("delivery_man_num") , secondRs.getString("car_num"));
+          return Optional.of(deliveryMan);
+        }
+      }
+
+    }catch (Exception e){
+      throw e;
+    }finally {
+      close(secondPstmt , secondRs);
+      close(firstPstmt , firstRs);
+    }
+    //BusinessMan , DeliveryMan도 아니면 ADMIN 혹은 WAREHOUSE_MANAGER이므로 해당 데이터를 던져주면 됨 ㅇㅇ 이게 사실은 else문이 되게 됨
+    return Optional.of(new User(id, name, phoneNumber, loginEmail, password, roleType));
+  }
+
+  /*public Optional<User> findById(Integer id , RoleType roleType , Connection con) throws SQLException {
     String sql = "select * from user ";
     PreparedStatement pstmt = null;
     ResultSet rs = null;
@@ -151,7 +207,10 @@ public class UserDao {
 
     }
     return Optional.empty();
-  }
+  }*/
+
+
+
 
 //서비스에서 dto를 domain으로 변경하고 주입해줌 , 트랜잭션 서비스에서 시작해야하므로 User객체 생성 서비스에서 해줌!
   public void update(User user,  Connection con){
