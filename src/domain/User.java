@@ -1,5 +1,7 @@
 package domain;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +21,7 @@ public class User {
   private String phoneNumber; //핸드폰 번호
   private String loginEmail; //로그인 아이디(이메일 형식)
   private String password; //비밀번호 SHA-256
+  private Map<String, String> passwordQuestion = new HashMap<>();
   private RoleType roleType; //권한 및 DTYPE
 
 

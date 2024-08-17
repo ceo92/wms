@@ -1,7 +1,11 @@
 package service;
 
+import static domain.RoleType.BUSINESS_MAN;
+import static domain.RoleType.DELIVERY_MAN;
+
 import dao.UserDao;
 import domain.BusinessMan;
+import domain.RoleType;
 import dto.updatedto.BusinessManUpdateDto;
 import dto.updatedto.DeliveryManUpdateDto;
 import dto.updatedto.WarehouseManagerUpdateDto;
@@ -46,8 +50,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
       String rePassword = businessManSaveDto.getRePassword();
       validateBeforeJoin(loginEmail, password, rePassword, con);
 
-      User user = new DeliveryMan(businessName, businessNum, name, phoneNumber, loginEmail,
-          password);
+      User user = new DeliveryMan(businessName, businessNum, name, phoneNumber, loginEmail, password , BUSINESS_MAN);
       Integer saveId = userDao.save(user, con);
       con.commit();
       return saveId;
@@ -82,7 +85,7 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
       String rePassword = deliveryManSaveDto.getRePassword();
       validateBeforeJoin(loginEmail, password, rePassword ,con);
 
-      User user = new DeliveryMan(deliveryManNum ,carNum , name, phoneNumber, loginEmail, password);
+      User user = new DeliveryMan(deliveryManNum ,carNum , name, phoneNumber, loginEmail, password , DELIVERY_MAN);
       Integer saveId = userDao.save(user, con);
       con.commit();
       return saveId;
@@ -210,10 +213,34 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
 
   }
 
+
+/*
+  public User findByLoginEmail(String loginEmail) throws SQLException {
+    Connection con = getConnection();
+    return userDao.findAll(con).stream().filter(user -> user.getLoginEmail().equals(loginEmail))
+        .findFirst().orElseThrow(()-> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+  }
+
+  public User findByLoginEmailAndPassword(String loginEmail , String password) throws SQLException {
+    Connection con = getConnection();
+    con.setReadOnly(true);
+    User findUser = userDao.findAll(con).stream().filter(
+            user -> user.getLoginEmail().equals(loginEmail) && user.getPassword().equals(password))
+        .findFirst().orElseThrow(() -> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+    con.setReadOnly(false);
+    closeConnection(con);
+    return findUser;
+  }
+*/
+
+
+
+
+
   /**
    * 회원가입 전 검증
    */
-  private static void validateBeforeJoin(String loginEmail, String password, String rePassword , Connection con) {
+  private void validateBeforeJoin(String loginEmail, String password, String rePassword , Connection con) {
     //1. 이미 존재하는 아이디인지
     userDao.findByLoginEmail(loginEmail , con).ifPresent(a -> {
       throw new IllegalArgumentException("이미 존재하는 아이디입니다.");

@@ -78,44 +78,44 @@ public class UserDao {
 
   public Optional<User> findById(Integer id , Connection con) throws SQLException {
     StringBuilder sql = new StringBuilder("select * from user where id = ?");
-    PreparedStatement firstPstmt = null;
-    PreparedStatement secondPstmt = null;
+    PreparedStatement superTablePstmt = null;
+    PreparedStatement subTablePstmt = null;
 
-    ResultSet firstRs = null;
-    ResultSet secondRs = null;
+    ResultSet superTableRs = null;
+    ResultSet subTableRs = null;
     String name = null, phoneNumber = null, loginEmail = null , password = null;
     RoleType roleType = null;
 
     try {
-      firstPstmt = con.prepareStatement(sql.toString());
-      firstPstmt.setInt(1 , id);
-      firstRs = firstPstmt.executeQuery();
-      if (firstRs.next()) {
-        name = firstRs.getString("name");
-        phoneNumber = firstRs.getString("phone_number");
-        loginEmail = firstRs.getString("login_email");
-        password = firstRs.getString("password");
-        roleType = RoleType.valueOf(firstRs.getString("role_type"));
+      superTablePstmt = con.prepareStatement(sql.toString());
+      superTablePstmt.setInt(1 , id);
+      superTableRs = superTablePstmt.executeQuery();
+      if (superTableRs.next()) {
+        name = superTableRs.getString("name");
+        phoneNumber = superTableRs.getString("phone_number");
+        loginEmail = superTableRs.getString("login_email");
+        password = superTableRs.getString("password");
+        roleType = RoleType.valueOf(superTableRs.getString("role_type"));
       }
 
       if (roleType == BUSINESS_MAN){
         sql.replace(15 , 19 , "business_man");
-        secondPstmt = con.prepareStatement(sql.toString());
-        secondPstmt.setInt(1, id);
-        secondRs = secondPstmt.executeQuery();
-        if (secondRs.next()) {
+        subTablePstmt = con.prepareStatement(sql.toString());
+        subTablePstmt.setInt(1, id);
+        subTableRs = subTablePstmt.executeQuery();
+        if (subTableRs.next()) {
           BusinessMan businessMan = new BusinessMan(id , name , phoneNumber , loginEmail , password , roleType ,
-              secondRs.getString("business_num") ,secondRs.getString("business_name"));
+              subTableRs.getString("business_num") ,subTableRs.getString("business_name"));
           return Optional.of(businessMan);
         }
       } else if (roleType == DELIVERY_MAN){
         sql.replace(15 , 19 , "delivery_man");
-        secondPstmt = con.prepareStatement(sql.toString());
-        secondPstmt.setInt(1, id);
-        secondRs = secondPstmt.executeQuery();
-        if (secondRs.next()) {
+        subTablePstmt = con.prepareStatement(sql.toString());
+        subTablePstmt.setInt(1, id);
+        subTableRs = subTablePstmt.executeQuery();
+        if (subTableRs.next()) {
           DeliveryMan deliveryMan = new DeliveryMan(id, name, phoneNumber, loginEmail, password , roleType,
-              secondRs.getString("delivery_man_num") , secondRs.getString("car_num"));
+              subTableRs.getString("delivery_man_num") , subTableRs.getString("car_num"));
           return Optional.of(deliveryMan);
         }
       }
@@ -123,8 +123,8 @@ public class UserDao {
     }catch (Exception e){
       throw e;
     }finally {
-      close(secondPstmt , secondRs);
-      close(firstPstmt , firstRs);
+      close(subTablePstmt , subTableRs);
+      close(superTablePstmt , superTableRs);
     }
     //BusinessMan , DeliveryMan도 아니면 ADMIN 혹은 WAREHOUSE_MANAGER이므로 해당 데이터를 던져주면 됨 ㅇㅇ 이게 사실은 else문이 되게 됨
     return Optional.of(new User(id, name, phoneNumber, loginEmail, password, roleType));
@@ -224,7 +224,7 @@ public class UserDao {
         while (rs.next()) {
           BusinessMan businessMan = new BusinessMan(rs.getInt("id"), rs.getString("name")
               , rs.getString("phone_number"), rs.getString("login_email"), rs.getString("password"),
-              roleType, rs.getString("business_num"), rs.getString("business_name")
+              , roleType, rs.getString("business_num"), rs.getString("business_name")
           );
           users.add(businessMan);
         }
@@ -258,6 +258,42 @@ public class UserDao {
       close(pstmt , rs);
     }
   }
+
+
+  public List<User> findAll(Connection con) throws SQLException {
+    StringBuilder superTableSql = new StringBuilder("select * from user u");
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    List<User> users = new ArrayList<>();
+    try{
+      pstmt = con.prepareStatement(superTableSql.toString());
+      rs = pstmt.executeQuery();
+      while (rs.next()){
+        User user = new User(rs.getInt("id") , rs.getString("name") ,  rs.getString("phone_number") ,
+            rs.getString("login_email") , rs.getString("password") , RoleType.valueOf(rs.getString("role_type")));
+        if (user.getRoleType() == BUSINESS_MAN){
+          BusinessMan businessMan = new BusinessMan(user.getId() , user.getName() , user.getPhoneNumber(),
+              user.getLoginEmail() , user.getPassword(), user.getRoleType() ,
+              rs.getString("business_num") , rs.getString("business_name"));
+          users.add(businessMan);
+        } else if (user.getRoleType() == DELIVERY_MAN ) {
+          DeliveryMan deliveryMan = new DeliveryMan(user.getId() , user.getName() , user.getPhoneNumber(),
+              user.getLoginEmail() , user.getPassword(), user.getRoleType() ,
+              rs.getString("delivery_man_num") , rs.getString("car_num"));
+          users.add(deliveryMan);
+        }
+        else{
+          users.add(user);
+        }
+      }
+    }catch (SQLException e){
+      throw e;
+    }finally {
+      close(pstmt , rs);
+    }
+    return users;
+  }
+
 
 //서비스에서 dto를 domain으로 변경하고 주입해줌 , 트랜잭션 서비스에서 시작해야하므로 User객체 생성 서비스에서 해줌!
   public void update(User user,  Connection con) throws SQLException {
