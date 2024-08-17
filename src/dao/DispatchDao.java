@@ -53,4 +53,22 @@ public class DispatchDao {
     }
     return dispatches;
   }
+
+  // ID로 배차 정보 조회
+  public Dispatch findAssignedDispatchById(int dispatchId) throws SQLException {
+    String sql = "SELECT * FROM dispatch WHERE id = ?";
+    try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(sql)) {
+      pstmt.setInt(1, dispatchId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+          return mapDispatch(rs);
+        }
+      }
+    } catch (SQLException e) {
+      System.out.println("배차 정보를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return null; // 해당 ID의 배차 정보가 없는 경우
+  }
 }
