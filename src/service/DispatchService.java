@@ -52,4 +52,14 @@ public class DispatchService {
       throw e;
     }
   }
+
+  // 배차 취소: 배차 상태를 배차미할당으로 변경
+  public void cancelDispatch(int dispatchId) throws SQLException {
+    try {
+      dispatchDao.cancelDispatch(dispatchId);
+    } catch (SQLException e) {
+      System.out.println("배차를 취소하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
