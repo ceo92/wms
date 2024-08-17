@@ -31,4 +31,18 @@ public class WaybillService {
       throw e;
     }
   }
+
+  // 운송장 수정: 운송장 정보 (기사님) 수정
+  public void modifyWaybill(int waybillId, DeliveryMan newDeliveryMan) throws SQLException {
+    try {
+      Waybill waybill = waybillDao.findWaybillById(waybillId);
+      if (waybill != null) {
+        waybill.getDispatchId().setDelivery_man(newDeliveryMan);
+        waybillDao.updateWaybill(waybill);
+      }
+    } catch (SQLException e) {
+      System.out.println("운송장 정보를 수정하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
