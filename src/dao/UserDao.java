@@ -77,7 +77,7 @@ public class UserDao {
 
 
   public Optional<User> findById(Integer id , Connection con) throws SQLException {
-    String sql = "select * from user where id = ?";
+    StringBuilder sql = new StringBuilder("select * from user where id = ?");
     PreparedStatement firstPstmt = null;
     PreparedStatement secondPstmt = null;
 
@@ -87,7 +87,7 @@ public class UserDao {
     RoleType roleType = null;
 
     try {
-      firstPstmt = con.prepareStatement(sql);
+      firstPstmt = con.prepareStatement(sql.toString());
       firstPstmt.setInt(1 , id);
       firstRs = firstPstmt.executeQuery();
       if (firstRs.next()) {
@@ -99,8 +99,8 @@ public class UserDao {
       }
 
       if (roleType == BUSINESS_MAN){
-        String businessManSql = sql.replace("user", "business_man");
-        secondPstmt = con.prepareStatement(businessManSql);
+        sql.replace(15 , 19 , "business_man");
+        secondPstmt = con.prepareStatement(sql.toString());
         secondPstmt.setInt(1, id);
         secondRs = secondPstmt.executeQuery();
         if (secondRs.next()) {
@@ -109,8 +109,8 @@ public class UserDao {
           return Optional.of(businessMan);
         }
       } else if (roleType == DELIVERY_MAN){
-        String deliveryManSql = sql.replace("user", "delivery_man");
-        secondPstmt = con.prepareStatement(deliveryManSql);
+        sql.replace(15 , 19 , "delivery_man");
+        secondPstmt = con.prepareStatement(sql.toString());
         secondPstmt.setInt(1, id);
         secondRs = secondPstmt.executeQuery();
         if (secondRs.next()) {
@@ -297,22 +297,35 @@ public class UserDao {
     }
   }
 
-  public List<User> findAll(){
 
-  }
+  public void delete(User user , Connection con) throws SQLException{
+    StringBuilder sql = new StringBuilder("delete from user where id = ?");
+    sql.replace(12 , 16 , "business_man");
+    sql.replace(12 , 16 , "delivery_man");
 
-  public void removeUser(User user){
-    String sql = "delete from Board where bno=?";
     PreparedStatement pstmt = null;
 
-    try {
-      pstmt = con.prepareStatement(sql);
-      pstmt.setInt(1, bno);
 
+    try {
+      //이 단계에서 이미 창고 관리자 , admin 삭제됨
+      pstmt = con.prepareStatement(sql.toString());
+      pstmt.setInt(1 , user.getId());
       pstmt.executeUpdate();
 
+      if (user instanceof BusinessMan){
+        sql.replace(12 , 16 , "business_man");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1 , user.getId());
+        pstmt.executeUpdate();
+      }
+      else if (user instanceof  DeliveryMan){
+        sql.replace(12, 16, "delivery_man");
+        pstmt = con.prepareStatement(sql.toString());
+        pstmt.setInt(1 , user.getId());
+        pstmt.executeUpdate();
+      }
     } catch (SQLException ex) {
-      throw new RuntimeException(ex);
+      throw ex;
     } finally {
       //커넥션 연결 => 쿼리 요청 역순으로 close
       close(pstmt, null);
@@ -343,104 +356,6 @@ public class UserDao {
 
     // 이미 닫을때 예외가 터지는 거니 특별히 할 수 있는거 없음 , 로그로 찍는거밖에.
   }
-
-
-  public void save(Connection con, Board board) throws SQLException {
-    String sql = "insert into Board(title , content , writer , date) values(? , ? , ? , ?)";
-    PreparedStatement pstmt = null;
-
-    try {
-      pstmt = con.prepareStatement(sql);
-      pstmt.setString(1, board.getBtitle()); //인덱스 1로 해서 1번필드에는 memberid 지정
-      pstmt.setString(2, board.getBcontent()); //인덱스 1로 해서 1번필드에는 memberid 지정
-      pstmt.setString(3, board.getBwriter()); //인덱스 1로 해서 1번필드에는 memberid 지정
-      pstmt.setTimestamp(4,
-          Timestamp.valueOf(board.getBdate().atStartOfDay())); //인덱스 1로 해서 1번필드에는 memberid 지정
-      pstmt.executeUpdate();
-
-    } catch (SQLException e) {
-      throw e;
-    }finally {
-      //커넥션 연결 => 쿼리 요청 역순으로 close
-      close(pstmt, null);
-    }
-  }
-
-
-  public Optional<Board> findByBno(Connection con , int bno) throws SQLException {
-    String sql = "SELECT * FROM Board WHERE bno = ?";
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
-
-    try {
-      pstmt = con.prepareStatement(sql);
-      pstmt.setInt(1, bno);
-      rs = pstmt.executeQuery();
-
-      if (rs.next()) {
-        Board board = new Board(rs.getInt("bno"),
-            rs.getString("title"),
-            rs.getString("content"),
-            rs.getString("writer"),
-            rs.getDate("date").toLocalDate());
-        return Optional.of(board);
-      } else {
-        return Optional.empty();
-      }
-
-    } catch (SQLException e) {
-      throw e;
-    }finally {
-      //커넥션 연결 => 쿼리 요청 역순으로 close
-      close(pstmt, rs);
-    }
-  }
-
-  public void update(BoardUpdateDto boardUpdateDto) throws SQLException {
-    String sql = "update Board set title = ? , content = ? , writer = ? where bno = ?";
-    PreparedStatement pstmt = null;
-    try {
-      pstmt = con.prepareStatement(sql);
-      pstmt.setString(1, boardUpdateDto.getBtitle());
-      pstmt.setString(2, boardUpdateDto.getBcontent());
-      pstmt.setString(3, boardUpdateDto.getBwriter());
-      pstmt.setInt(4, boardUpdateDto.getBno());
-      pstmt.executeUpdate();
-    } catch (SQLException e) {
-      throw e;
-    } finally {
-      //커넥션 연결 => 쿼리 요청 역순으로 close
-      close(pstmt, null);
-    }
-  }
-
-
-  public List<User> findAll(Connection con) throws SQLException {
-    List<Board> list = new ArrayList<>();
-    String sql = "select * from Board";
-
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
-
-    try {
-      pstmt = con.prepareStatement(sql);
-      rs = pstmt.executeQuery();
-      while (rs.next()) {
-        list.add(new Board(rs.getInt("bno"),
-            rs.getString("title"),
-            rs.getString("content"),
-            rs.getString("writer"),
-            rs.getDate("date").toLocalDate()));
-      }
-      return list;
-    } catch (SQLException e) {
-      throw e;
-    }finally {
-      //커넥션 연결 => 쿼리 요청 역순으로 close
-      close(pstmt, rs);
-    }
-  }
-
   //단건 수정 , 삭제 : executeQuery()에 sql 지정 x ,
   public void remove(Connection con, int bno) {
     String sql = "delete from Board where bno=?";
