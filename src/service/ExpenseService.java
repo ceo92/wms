@@ -229,6 +229,38 @@ public class ExpenseService {
     }
 
     /**
+     * 지출 삭제
+     * 총 관리자: 모든 지출 내역 삭제 가능
+     * 창고 관리자: 자신이 등록한 지출 내역만 삭제 가능
+     *
+     * @User: 총 관리자, 창고 관리자
+     */
+    public void deleteExpense(User user) throws IOException {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            int result = 0;
+
+            switch (user.getRoleType().toString()) {
+                case "ADMIN" -> result = expenseDao.deleteExpense(con, findValidExpenseId(expenseDao.findAll(con), user));
+
+                case "WAREHOUSE_MANAGER" -> result = expenseDao.deleteExpense(con, findValidExpenseId(expenseDao.findById(con, user.getId()), user));
+            }
+
+            if (result == 1) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
      * 유효한 지출일을 입력 받음
      *
      * @return 지출일

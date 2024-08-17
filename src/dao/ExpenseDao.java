@@ -381,4 +381,24 @@ public class ExpenseDao {
             throw new RuntimeException(e);
         }
     }
+
+    public int deleteExpense(Connection con, Integer expenseId) {
+        String query = new StringBuilder()
+                .append("DELETE FROM expense ")
+                .append("WHERE id = ? ").toString();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+            pstmt.setInt(1, expenseId);
+
+            if (pstmt.executeUpdate() == 1) {
+                con.commit();
+                System.out.println("지출 내역이 삭제되었습니다.");
+                return 1;
+            } else {
+                throw new RuntimeException("해당 지출 내역을 삭제할 수 없습니다.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
