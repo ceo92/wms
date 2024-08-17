@@ -70,4 +70,8 @@ public class InquiryService {
     }
     inquiryDao.delete(id, password);
   }
+
+  public void deleteInquiryByAdmin(Integer id) throws SQLException {
+    inquiryDao.deleteByAdmin(id);
+  }
 }
