@@ -15,5 +15,4 @@ public enum InboundStatus {
     InboundStatus(String value) {
         this.value = value;
     }
-
 }
