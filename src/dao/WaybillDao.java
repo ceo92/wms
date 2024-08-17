@@ -40,4 +40,22 @@ public class WaybillDao {
     }
     return waybills;
   }
+
+  // ID로 운송장 정보 조회
+  public Waybill findWaybillById(int waybillId) throws SQLException {
+    String sql = "SELECT * FROM waybill WHERE id = ?";
+    try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(sql)) {
+      pstmt.setInt(1, waybillId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+          return mapWaybill(rs);
+        }
+      }
+    } catch (SQLException e) {
+      System.out.println("운송장 정보를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return null; // 해당 ID의 운송장 정보가 없는 경우
+  }
 }
