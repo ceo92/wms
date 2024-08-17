@@ -13,4 +13,11 @@ public class NoticeService {
     Notice notice = new Notice(title, content, 1); // roleId 1: 관리자
     noticeDao.save(notice);
   }
+
+  public void viewAllNotices() throws SQLException {
+    List<Notice> notices = noticeDao.findAll();
+    for (Notice notice : notices) {
+      System.out.println("ID: " + notice.getId() + ", 제목: " + notice.getTitle() + ", 내용: " + notice.getContent());
+    }
+  }
 }
