@@ -20,4 +20,13 @@ public class InquiryService {
       System.out.println("ID: " + inquiry.getId() + ", 제목: " + inquiry.getTitle() + ", 내용: " + inquiry.getContent());
     }
   }
+
+  public void viewAllPrivateInquiries() throws SQLException {
+    List<Inquiry> inquiries = inquiryDao.findAll();
+    for (Inquiry inquiry : inquiries) {
+      if (inquiry.isPrivate()) {
+        System.out.println("ID: " + inquiry.getId() + ", 제목: " + inquiry.getTitle() + ", 내용: " + inquiry.getContent());
+      }
+    }
+  }
 }
