@@ -100,4 +100,29 @@ public class DispatchDao {
       throw e;
     }
   }
+
+  // 배차 정보 매핑 (ResultSet을 Dispatch 객체로 변환)
+  private Dispatch mapDispatch(ResultSet rs) throws SQLException {
+    Dispatch dispatch = new Dispatch(
+        new Outbound(
+            rs.getInt("outbound_id"),  // Outbound ID
+            rs.getString("buyer_name"),  // 구매자 이름
+            rs.getInt("buyer_region_id"),  // 구매자 지역 ID
+            rs.getString("buyer_city"),  // 구매자 도시
+            rs.getString("buyer_address"),  // 구매자 상세 주소
+            rs.getString("product_name"),  // 상품명
+            rs.getInt("product_quantity"),  // 수량
+            OutboundType.valueOf(rs.getString("outbound_type")),  // 출고 상태
+            rs.getInt("business_man_id")  // 사업자 ID
+        ),
+        new DeliveryMan(
+            rs.getInt("delivery_man_id"),  // 배송기사 ID
+            rs.getString("delivery_man_num"),  // 배송기사 번호
+            rs.getString("car_num")  // 차량 번호
+        ),
+        DispatchType.valueOf(rs.getString("dispatchType"))  // 배차 상태
+    );
+    dispatch.setId(rs.getInt("id"));  // Dispatch ID 매핑
+    return dispatch;
+  }
 }
