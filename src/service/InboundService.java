@@ -126,6 +126,36 @@ public class InboundService {
         }
     }
 
+    /**
+     * 입고 예상 날짜 수정
+     * @param id 입고 id
+     * @param dateString 날짜 문자열
+     */
+    public void updateExpectedDate(int id, String dateString) {
+        // TODO: id, dateString 검증
+        LocalDate date = convertStringToDate(dateString);
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            boolean isExist = inboundDao.existById(con, id);
+            if(!isExist) {
+                throw new RuntimeException("존재하지 않는 입고 요청입니다.");
+            }
+            boolean updateResult = inboundDao.updateExpectedDate(con, id, date);
+            if(updateResult) {
+                con.commit();
+            } else {
+                con.rollback();
+                throw new RuntimeException("입고 예상 날짜 수정에 실패했습니다.");
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
     /**
      * 문자열을 LocalDate 타입으로 변환
