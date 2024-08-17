@@ -26,4 +26,8 @@ public class NoticeService {
     notice.setId(id);
     noticeDao.update(notice);
   }
+
+  public void deleteNotice(Integer id) throws SQLException {
+    noticeDao.delete(id);
+  }
 }
