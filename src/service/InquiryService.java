@@ -62,4 +62,12 @@ public class InquiryService {
     inquiry.setContent(content);
     inquiryDao.update(inquiry);
   }
+
+  public void deletePrivateInquiry(Integer id, String password) throws SQLException {
+    Inquiry inquiry = inquiryDao.findById(id);
+    if (!inquiry.getInquiryPassword().equals(password)) {
+      throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+    }
+    inquiryDao.delete(id, password);
+  }
 }
