@@ -294,7 +294,8 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
 
 
   private static Connection getConnection(){
-    return HikariCpDBConnectionUtil.getConnection();
+    HikariCpDBConnectionUtil instance = HikariCpDBConnectionUtil.getInstance();
+    return instance.getConnection();
   }
 
   private static void closeConnection(Connection con){

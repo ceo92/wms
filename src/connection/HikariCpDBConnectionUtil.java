@@ -13,28 +13,39 @@ import java.util.Properties;
 
 public class HikariCpDBConnectionUtil {
 
-  public static Connection getConnection(){
-    Properties properties = new Properties();
+  private final String dbUrl;
+  private final String dbUsername;
+  private final String dbPassword;
+  private static final HikariCpDBConnectionUtil hikariCpDbConnectonUtil = new HikariCpDBConnectionUtil();
+  private HikariCpDBConnectionUtil(){
     String propertiesFilePath = "src/application.properties";
-    Connection con = null;
+    Properties properties = new Properties();
 
-    try(InputStream input = new FileInputStream(propertiesFilePath)) {
+    try(InputStream input = new FileInputStream(propertiesFilePath)){
       properties.load(input);
-      String dbUrl = properties.getProperty("database.url");
-      String dbUsername = properties.getProperty("database.username");
-      String dbPassword = properties.getProperty("database.password");
+      dbUrl = properties.getProperty("database.url");
+      dbUsername = properties.getProperty("database.username");
+      dbPassword = properties.getProperty("database.password");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
-      HikariDataSource dataSource = getDataSource(dbUrl, dbUsername, dbPassword);
+  }
 
+  public static HikariCpDBConnectionUtil getInstance(){
+    return hikariCpDbConnectonUtil;
+  }
+
+  public Connection getConnection(){
+    try {
+      HikariDataSource dataSource = getDataSource();
       return dataSource.getConnection();
-
-    }catch (IOException | SQLException e){
+    }catch (SQLException e){
       throw new RuntimeException(e);
     }
   }
 
-  private static HikariDataSource getDataSource(String dbUrl, String dbUsername,
-      String dbPassword) {
+  private HikariDataSource getDataSource() {
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl(dbUrl); // 데이터베이스 URL
     config.setUsername(dbUsername); // 데이터베이스 사용자 이름
@@ -47,8 +58,7 @@ public class HikariCpDBConnectionUtil {
     config.setMinimumIdle(5); // 최소 아이들 커넥션 수
     config.setConnectionTimeout(30000); // 커넥션 타임아웃 (밀리초)
 
-    HikariDataSource dataSource = new HikariDataSource(config);
-    return dataSource;
+    return new HikariDataSource(config);
   }
 
 
