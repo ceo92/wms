@@ -3,6 +3,7 @@ package dao;
 import static domain.RoleType.BUSINESS_MAN;
 import static domain.RoleType.DELIVERY_MAN;
 
+import domain.Admin;
 import domain.BusinessMan;
 import domain.DeliveryMan;
 import domain.RoleType;
@@ -241,10 +242,11 @@ public class UserDao {
       } else {
         pstmt = con.prepareStatement(sql.toString());
         rs = pstmt.executeQuery();
-        if (rs.next()) {
+        while (rs.next()) {
           User user = new User(rs.getInt("id"), rs.getString("name")
-              , rs.getString("phone_number"), rs.getString("login_email"), rs.getString("password"),
-              roleType);
+              , rs.getString("phone_number"), rs.getString("login_email"),
+              rs.getString("password"), roleType);
+          if (user instanceof Admin)continue;
           users.add(user);
         }
       }
