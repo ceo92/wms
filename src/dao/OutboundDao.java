@@ -52,4 +52,19 @@ public class OutboundDao {
     }
     return null; // 해당 ID의 출고 요청 정보가 없는 경우
   }
+
+  // 재고 업데이트 (상품 수량을 증가 또는 감소)
+  public void updateStock(String productName, int businessManId, int quantityChange) throws SQLException {
+    String sql = "UPDATE stock SET quantity = quantity + ? WHERE product_name = ? AND business_man_id = ?";
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, quantityChange);
+      ps.setString(2, productName);
+      ps.setInt(3, businessManId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("재고를 업데이트하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
