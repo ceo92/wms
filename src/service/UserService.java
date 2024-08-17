@@ -214,7 +214,6 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
   }
 
 
-/*
   public User findByLoginEmail(String loginEmail) throws SQLException {
     Connection con = getConnection();
     return userDao.findAll(con).stream().filter(user -> user.getLoginEmail().equals(loginEmail))
@@ -231,7 +230,6 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
     closeConnection(con);
     return findUser;
   }
-*/
 
 
 
