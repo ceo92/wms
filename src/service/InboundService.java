@@ -158,6 +158,43 @@ public class InboundService {
     }
 
     /**
+     * 입고 품목 수정
+     */
+    public void updateInboundItems() {
+
+    }
+
+
+    /**
+     * 입고 처리
+     * @param itemId 입고 처리할 품목
+     * @param stock 등록할 재고 정보
+     */
+    // 입고 처리
+    // 1. 재고 추가
+    // 2. 입고 품목에 완료 수량 업데이트
+    // 3. 입고 건에 대해 모든 품목이 입고 완료되었다면 상태 변경
+    public void confirmInbound(int itemId, Stock stock) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            if(stockDao.saveStock(con, stock) == 0 || !inboundItemDao.increaseCompletedQuantity(con, itemId, stock.getQuantity())) {
+                con.rollback();
+                throw new RuntimeException("입고 처리에 실패했습니다.");
+            }
+            con.commit();
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+
+    }
+
+
+    /**
      * 입고 품목 조회
      * @param inboundId
      * @return
