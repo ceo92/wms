@@ -2,6 +2,7 @@ package dao;
 
 import domain.Stock;
 import dto.StockDto;
+import dto.StockEditDto;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -178,6 +179,31 @@ public class StockDao {
                 return 1;
             } else {
                 throw new RuntimeException("재고를 등록할 수 없습니다.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int updateStock(Connection con, StockEditDto request) {
+        String query = new StringBuilder()
+                .append("UPDATE stock ")
+                .append("SET quantity = ? , manufactured_date = ? , expiration_date = ? ")
+                .append("WHERE id = ? ").toString();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, request.getQuantity());
+            pstmt.setTimestamp(2, java.sql.Timestamp.valueOf(request.getManufacturedDate()));
+            pstmt.setTimestamp(3, java.sql.Timestamp.valueOf(request.getExpirationDate()));
+            pstmt.setInt(4, request.getId());
+
+            if (pstmt.executeUpdate() == 1) {
+                con.commit();
+                System.out.println("재고 내역이 수정되었습니다.");
+                return 1;
+            } else {
+                throw new RuntimeException("해당 재고를 수정할 수 없습니다.");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

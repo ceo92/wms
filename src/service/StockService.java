@@ -5,6 +5,7 @@ import domain.Product;
 import domain.ProductCategory;
 import domain.Stock;
 import dto.StockDto;
+import dto.StockEditDto;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -150,6 +151,58 @@ public class StockService {
     }
 
     /**
+     * 재고 수정
+     * 수량, 제조일자, 유효기간 수정 가능
+     * 총 관리자: 모든 재고 내역 수정 가능
+     * 창고 관리자: 자신의 창고에 등록된 재고만 수정 가능
+     *
+     * @User: 총 관리자, 창고 관리자
+     */
+    public void updateStock(User user) throws IOException {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            int result = 0;
+
+            switch (user.getRoleType().toString()) {
+                case "ADMIN" -> {
+                    int stockId = findValidStockId(stockDao.findAll(con), user);
+                    LocalDateTime manufacturedDate = createValidManufacturedDate();
+
+                    result = stockDao.updateStock(con, StockEditDto.builder()
+                            .id(stockId)
+                            .quantity(createValidQuantity())
+                            .manufacturedDate(manufacturedDate)
+                            .expirationDate(createValidExpirationDate(manufacturedDate))
+                            .build());
+                }
+
+                case "WAREHOUSE_MANAGER" -> {
+                    int stockId = findValidStockId(stockDao.findByManagerId(con, user.getId()), user);
+                    LocalDateTime manufacturedDate = createValidManufacturedDate();
+                    result = stockDao.updateStock(con, StockEditDto.builder()
+                            .id(stockId)
+                            .quantity(createValidQuantity())
+                            .manufacturedDate(manufacturedDate)
+                            .expirationDate(createValidExpirationDate(manufacturedDate))
+                            .build());
+                }
+            }
+
+            if (result == 1) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
      * 유효한 재고 대분류 카테고리 번호를 입력 받음
      */
     private int createValidMainCategoryId() throws IOException {
@@ -195,6 +248,32 @@ public class StockService {
                 return Integer.parseInt(categoryId);
             } else {
                 System.out.println("잘못된 입력입니다.");
+            }
+        }
+    }
+
+    /**
+     * 유효한 재고 번호를 입력 받음
+     * 재고 내역 수정 및 삭제 시 사용
+     */
+    private int findValidStockId(List<StockDto> stocks, User user) throws IOException {
+        while (true) {
+            findStocks(user);
+            System.out.println("\n재고의 번호를 선택하세요.\n");
+            System.out.print("번호 입력: ");
+            String stockId = br.readLine();
+
+            if (isNotNumber(stockId)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+
+            if (stocks.stream()
+                    .map(StockDto::getId)
+                    .anyMatch(n -> n == Integer.parseInt(stockId))) {
+                return Integer.parseInt(stockId);
+            } else {
+                System.out.println("\n조회할 수 없는 재고 건입니다.\n");
             }
         }
     }
