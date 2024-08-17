@@ -172,4 +172,34 @@ public class OutboundDao {
     }
     return outbounds;
   }
+
+  // 출고 지시서 조회
+  public List<DispatchDto> findOutboundInstructions() throws SQLException {
+    String query = "SELECT d.id AS dispatch_id, o.id AS outbound_id, dm.id AS delivery_man_id, dm.car_num, d.dispatchType, o.product_name, o.product_quantity " +
+        "FROM dispatch d " +
+        "JOIN outbound o ON d.outbound_id = o.id " +
+        "JOIN delivery_man dm ON d.delivery_man_id = dm.role_id " +
+        "WHERE o.outbound_type = 'APPROVED' AND d.dispatchType = 'ASSIGNED'";
+    List<DispatchDto> dispatches = new ArrayList<>();
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ResultSet rs = ps.executeQuery()) {
+      while (rs.next()) {
+        DispatchDto dispatch = new DispatchDto(
+            rs.getInt("dispatch_id"),
+            rs.getInt("outbound_id"),
+            rs.getInt("delivery_man_id"),
+            DispatchType.ASSIGNED,
+            rs.getString("car_num"),
+            rs.getString("product_name"),
+            rs.getInt("product_quantity")
+        );
+        dispatches.add(dispatch);
+      }
+    } catch (SQLException e) {
+      System.out.println("출고 지시서를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return dispatches;
+  }
 }
