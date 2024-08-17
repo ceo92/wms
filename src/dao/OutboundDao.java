@@ -202,4 +202,20 @@ public class OutboundDao {
     }
     return dispatches;
   }
+
+  // 출고 정보 매핑 (ResultSet을 Outbound 객체로 변환)
+  private Outbound mapOutbound(ResultSet rs) throws SQLException {
+    Outbound outbound = new Outbound(
+        rs.getInt("outbound_id"), rs.getString("buyer_name"),
+        rs.getInt("buyer_region_id"),
+        rs.getString("buyer_city"),
+        rs.getString("buyer_address"),
+        rs.getString("product_name"),
+        rs.getInt("product_quantity"),
+        OutboundType.valueOf(rs.getString("outbound_type")),
+        rs.getInt("business_man_id")
+    );
+    outbound.setId(rs.getInt("id"));
+    return outbound;
+  }
 }
