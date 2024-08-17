@@ -11,6 +11,7 @@ import dto.updatedto.DeliveryManUpdateDto;
 import dto.updatedto.WarehouseManagerUpdateDto;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import connection.HikariCpDBConnectionUtil;
 import domain.DeliveryMan;
@@ -214,38 +215,37 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
   }
 
 
-  public User findByLoginEmail(String loginEmail) throws SQLException {
+  private Optional<User> findByLoginEmail(String loginEmail) throws SQLException {
     Connection con = getConnection();
     con.setReadOnly(true);
-    User findUser = userDao.findAll(con).stream()
+    Optional<User> findUser = userDao.findAll(con).stream()
         .filter(user -> user.getLoginEmail().equals(loginEmail))
-        .findFirst().orElseThrow(() -> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+        .findFirst();
     con.setReadOnly(false);
     closeConnection(con);
     return findUser;
   }
 
-  public User findByLoginEmailAndPassword(String loginEmail , String password) throws SQLException {
+  private Optional<User> findByLoginEmailAndPassword(String loginEmail , String password) throws SQLException {
     Connection con = getConnection();
     con.setReadOnly(true);
-    User findUser = userDao.findAll(con).stream().filter(
+    Optional<User> findUser = userDao.findAll(con).stream().filter(
             user -> user.getLoginEmail().equals(loginEmail) && user.getPassword().equals(password))
-        .findFirst().orElseThrow(() -> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+        .findFirst();
     con.setReadOnly(false);
     closeConnection(con);
     return findUser;
   }
-
-
 
 
 
   /**
    * 회원가입 전 검증
    */
-  private void validateBeforeJoin(String loginEmail, String password, String rePassword , Connection con) {
+  private void validateBeforeJoin(String loginEmail, String password, String rePassword , Connection con)
+      throws SQLException {
     //1. 이미 존재하는 아이디인지
-    userDao.findByLoginEmail(loginEmail , con).ifPresent(a -> {
+    findByLoginEmail(loginEmail).ifPresent(user -> {
       throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
     });
 
