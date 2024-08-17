@@ -47,4 +47,9 @@ public class InquiryService {
     }
     inquiryDao.delete(id, password);
   }
+
+  public void addPrivateInquiry(String title, String content, String password) throws SQLException {
+    Inquiry inquiry = new Inquiry(title, content, true, password, 2, null); // roleId 2: 회원, isPrivate: true
+    inquiryDao.save(inquiry);
+  }
 }
