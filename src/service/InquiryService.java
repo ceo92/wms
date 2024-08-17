@@ -52,4 +52,14 @@ public class InquiryService {
     Inquiry inquiry = new Inquiry(title, content, true, password, 2, null); // roleId 2: 회원, isPrivate: true
     inquiryDao.save(inquiry);
   }
+
+  public void updatePrivateInquiry(Integer id, String title, String content, String password) throws SQLException {
+    Inquiry inquiry = inquiryDao.findById(id);
+    if (!inquiry.getInquiryPassword().equals(password)) {
+      throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+    }
+    inquiry.setTitle(title);
+    inquiry.setContent(content);
+    inquiryDao.update(inquiry);
+  }
 }
