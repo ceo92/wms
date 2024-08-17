@@ -67,4 +67,30 @@ public class OutboundDao {
       throw e;
     }
   }
+
+  // 미승인 상태의 출고 요청 조회
+  public List<OutboundDto> findNonApprovedOutbounds() throws SQLException {
+    String query = "SELECT buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity, outbound_type FROM outbound WHERE outbound_type IN ('WAITINGFORAPPROVAL', 'SHIPMENTDELAYED')";
+    List<OutboundDto> outbounds = new ArrayList<>();
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ResultSet rs = ps.executeQuery()) {
+      while (rs.next()) {
+        OutboundDto outbound = new OutboundDto(
+            rs.getString("buyer_name"),
+            rs.getInt("buyer_region_id"),
+            rs.getString("buyer_city"),
+            rs.getString("buyer_address"),
+            rs.getString("product_name"),
+            rs.getInt("product_quantity"),
+            rs.getString("outbound_type")
+        );
+        outbounds.add(outbound);
+      }
+    } catch (SQLException e) {
+      System.out.println("미승인 상태의 출고 요청을 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return outbounds;
+  }
 }
