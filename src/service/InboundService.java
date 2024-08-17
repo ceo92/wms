@@ -195,6 +195,58 @@ public class InboundService {
 
 
     /**
+     * 입고 위치 지정
+     *
+     * @param warehouseId
+     * @param stockId
+     * @return
+     */
+    // 재고 별 창고 내 입고 위치 지정
+    public boolean assignInboundSection(int warehouseId, int stockId) {
+        // TODO: stock 검증
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            InboundItem item = inboundItemDao.findInboundItem(con, itemId).orElseThrow(
+                    () -> new RuntimeException("존재하지 않는 입고 품목입니다."));
+
+            // 1. 해당 제품이 저장된 기존 구역에 적재 (하나의 구역에는 한 종류의 제품만 적재 가능)
+            List<StockSection> sections = stockSectionDao.findByWarehouseIdAndProductId(con, warehouseId, item.getProduct().getId());
+            for(StockSection section: sections) {
+                double sectionArea = section.getWidth() * section.getHeight();
+                double stockSize = section.getStock().getWidth() * section.getStock().getHeight();
+                double availableSectionArea =  sectionArea - stockSize * section.getQuantity();
+                int maxLoadableQuantity = (int)(availableSectionArea / stockSize);
+                if(maxLoadableQuantity > 0) {
+                    int loadQuantity = Math.min(stock.getQuantity(), maxLoadableQuantity);
+                    stockSectionDao.updateQuantity(con, section.getId(), section.getQuantity() + loadQuantity);
+                    quantity -= loadQuantity;
+                }
+                if(quantity == 0) {
+                    break;
+                }
+            }
+            // 2. 빈 구역에 적재
+            while(quantity > 0) {
+                StockSection section = stockSectionDao.findEmptySection(con, warehouseId)
+                        .orElseThrow(() -> new RuntimeException("창고에 재고를 적재할 구역이 없습니다."));
+
+                stockSectionDao.updateStockIdAndQuantity(con, stockid, quantity);
+            }
+            // 3. 품목 수량 업데이트
+            boolean result = inboundItemDao.updateCompletedQuantity(con, item.getId(), item.getCompleteQuantity() + quantity);
+
+            con.commit();
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
      * 입고 품목 조회
      * @param inboundId
      * @return
