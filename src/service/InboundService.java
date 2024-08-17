@@ -213,6 +213,74 @@ public class InboundService {
         return sb.toString();
     }
 
+
+    /**
+     * 입고 승인
+     *
+     * @param id 입고 id
+     */
+    // 재고에 입고 요청한 건 추가
+    public void approvalInbound(int id) {
+        Inbound inbound = findInboundById(id);
+        if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
+            throw new RuntimeException("입고 예정 건만 승인 처리 가능합니다.");
+        }
+        updateInboundStatus(id, InboundStatus.APPROVED);
+        // 재고 테이블에 품목 추가
+    }
+
+    /**
+     * 입고 완료
+     *
+     * @param id 입고 id
+     */
+    public void completeInbound(int id) {
+        Inbound inbound = findInboundById(id);
+        if(!InboundStatus.APPROVED.equals(inbound.getStatus())) {
+            throw new RuntimeException("입고 대기 건만 입고 처리 가능합니다.");
+        }
+        updateInboundStatus(id, InboundStatus.COMPLETED);
+    }
+
+    /**
+     * 입고 취소
+     *
+     * @param id 입고 id
+     */
+    public void cancelInbound(int id) {
+        Inbound inbound = findInboundById(id);
+        if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
+            throw new RuntimeException("입고 예정인 건만 취소 가능합니다.");
+        }
+        updateInboundStatus(id, InboundStatus.CANCEL);
+    }
+
+    /**
+     * 입고 상태 업데이트
+     *
+     * @param id 입고 id
+     * @param status 변경할 입고 상태
+     */
+    private void updateInboundStatus(int id, InboundStatus status) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            boolean result = inboundDao.updateStatus(con, id, status);
+            if(result) {
+                con.commit();
+            } else {
+                con.rollback();
+                throw new RuntimeException("입고 상태 변경을 실패했습니다.");
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
     /**
      * 문자열을 LocalDate 타입으로 변환
      *
