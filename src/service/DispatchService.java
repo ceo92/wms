@@ -27,4 +27,15 @@ public class DispatchService {
       throw e;
     }
   }
+
+
+  // 배차리스트 조회: 배차할당 상태의 배차 정보를 조회
+  public List<Dispatch> viewAssignedDispatches() throws SQLException {
+    try {
+      return dispatchDao.findAssignedDispatches();
+    } catch (SQLException e) {
+      System.out.println("배차 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
