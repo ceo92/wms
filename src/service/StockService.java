@@ -19,6 +19,7 @@ import java.util.List;
 
 public class StockService {
     private static final StockDao stockDao = new StockDao();
+    private static final StockSectionDao stockSectionDao = new StockSectionDao();
     private static final ProductCategoryService productCategoryService = new ProductCategoryService();
     private static final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -196,6 +197,46 @@ public class StockService {
                 con.rollback();
             }
         } catch (SQLException e) {
+            transactionRollback(con);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
+     * 재고 삭제
+     * 총 관리자: 모든 재고 내역 삭제 가능
+     * 창고 관리자: 자신의 창고에 등록된 재고만 삭제 가능
+     *
+     * @User: 총 관리자, 창고 관리자
+     */
+    public void deleteStock(User user) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            int result = 0;
+
+            switch (user.getRoleType().toString()) {
+                case "ADMIN" -> {
+                    int stockId = findValidStockId(stockDao.findAll(con), user);
+                    stockSectionDao.deleteStockSection(con, stockId);
+                    result = stockDao.deleteStock(con, stockId);
+                }
+
+                case "WAREHOUSE_MANAGER" -> {
+                    int stockId = findValidStockId(stockDao.findByManagerId(con, user.getId()), user);
+                    stockSectionDao.deleteStockSection(con, stockId);
+                    result = stockDao.deleteStock(con, stockId);
+                }
+            }
+
+            if (result == 1) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException | IOException e) {
             transactionRollback(con);
         } finally {
             connectionClose(con);
