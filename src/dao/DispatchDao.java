@@ -86,4 +86,18 @@ public class DispatchDao {
       throw e;
     }
   }
+
+  // 배차 취소 (배차 상태를 배차미할당으로 변경)
+  public void cancelDispatch(int dispatchId) throws SQLException {
+    String sql = "UPDATE dispatch SET dispatchType = ? WHERE id = ?";
+    try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(sql)) {
+      pstmt.setString(1, DispatchType.NONASSIGNED.name());
+      pstmt.setInt(2, dispatchId);
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("배차를 취소하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
