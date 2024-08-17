@@ -20,4 +20,10 @@ public class NoticeService {
       System.out.println("ID: " + notice.getId() + ", 제목: " + notice.getTitle() + ", 내용: " + notice.getContent());
     }
   }
+
+  public void updateNotice(Integer id, String title, String content) throws SQLException {
+    Notice notice = new Notice(title, content, 1);
+    notice.setId(id);
+    noticeDao.update(notice);
+  }
 }
