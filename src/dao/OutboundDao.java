@@ -119,4 +119,17 @@ public class OutboundDao {
     }
     return outbounds;
   }
+
+  // 출고 요청 승인 처리
+  public void approveOutbound(int outboundId) throws SQLException {
+    String query = "UPDATE outbound SET outbound_type = 'APPROVED' WHERE id = ?";
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query)) {
+      ps.setInt(1, outboundId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("출고 요청을 승인하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
