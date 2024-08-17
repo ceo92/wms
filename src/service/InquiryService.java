@@ -74,4 +74,11 @@ public class InquiryService {
   public void deleteInquiryByAdmin(Integer id) throws SQLException {
     inquiryDao.deleteByAdmin(id);
   }
+
+  public void replyToPrivateInquiry(Integer inquiryId, String content) throws SQLException {
+    Inquiry inquiry = inquiryDao.findById(inquiryId);
+    if (!inquiry.isPrivate()) {
+      throw new IllegalArgumentException("답변할 수 없습니다.");
+    }
+  }
 }
