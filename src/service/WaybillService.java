@@ -20,4 +20,15 @@ public class WaybillService {
       throw e;
     }
   }
+
+
+  // 운송장 리스트 조회: 모든 운송장 정보 조회
+  public List<Waybill> viewAllWaybills() throws SQLException {
+    try {
+      return waybillDao.findAllWaybills();
+    } catch (SQLException e) {
+      System.out.println("운송장 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
