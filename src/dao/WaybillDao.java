@@ -58,4 +58,18 @@ public class WaybillDao {
     }
     return null; // 해당 ID의 운송장 정보가 없는 경우
   }
+
+  // 운송장 정보 업데이트 (운송장에 연결된 배차 정보 변경)
+  public void updateWaybill(Waybill waybill) throws SQLException {
+    String sql = "UPDATE waybill SET dispatch_id = ? WHERE id = ?";
+    try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(sql)) {
+      pstmt.setInt(1, waybill.getDispatchId());
+      pstmt.setInt(2, waybill.getId());
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("운송장 정보를 업데이트하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
