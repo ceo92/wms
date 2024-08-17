@@ -145,4 +145,31 @@ public class OutboundDao {
       throw e;
     }
   }
+
+  // 특정 단어가 포함된 출고 상품 검색
+  public List<OutboundDto> searchApprovedOutbounds(String productName) throws SQLException {
+    String query = "SELECT buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity FROM outbound WHERE outbound_type = 'APPROVED' AND product_name LIKE ?";
+    List<OutboundDto> outbounds = new ArrayList<>();
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query)) {
+      ps.setString(1, "%" + productName + "%");
+      ResultSet rs = ps.executeQuery();
+      while (rs.next()) {
+        OutboundDto outbound = new OutboundDto(
+            rs.getString("buyer_name"),
+            rs.getInt("buyer_region_id"),
+            rs.getString("buyer_city"),
+            rs.getString("buyer_address"),
+            rs.getString("product_name"),
+            rs.getInt("product_quantity"),
+            "APPROVED"
+        );
+        outbounds.add(outbound);
+      }
+    } catch (SQLException e) {
+      System.out.println("출고 상품을 검색하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return outbounds;
+  }
 }
