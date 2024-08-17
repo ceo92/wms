@@ -49,4 +49,14 @@ public class OutboundService {
       throw e;
     }
   }
+
+  // 승인된 출고 리스트 조회
+  public List<OutboundDto> viewApprovedOutbounds() throws SQLException {
+    try {
+      return outboundDao.findApprovedOutbounds();
+    } catch (SQLException e) {
+      System.out.println("승인된 출고 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
