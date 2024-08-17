@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -188,7 +189,7 @@ public class StockDao {
     public int updateStock(Connection con, StockEditDto request) {
         String query = new StringBuilder()
                 .append("UPDATE stock ")
-                .append("SET quantity = ? , manufactured_date = ? , expiration_date = ? ")
+                .append("SET quantity = ? , manufactured_date = ? , expiration_date = ? , mod_date = ? ")
                 .append("WHERE id = ? ").toString();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
@@ -196,7 +197,8 @@ public class StockDao {
             pstmt.setInt(1, request.getQuantity());
             pstmt.setTimestamp(2, java.sql.Timestamp.valueOf(request.getManufacturedDate()));
             pstmt.setTimestamp(3, java.sql.Timestamp.valueOf(request.getExpirationDate()));
-            pstmt.setInt(4, request.getId());
+            pstmt.setTimestamp(4, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+            pstmt.setInt(5, request.getId());
 
             if (pstmt.executeUpdate() == 1) {
                 con.commit();
