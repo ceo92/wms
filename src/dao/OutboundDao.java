@@ -132,4 +132,17 @@ public class OutboundDao {
       throw e;
     }
   }
+
+  // 출고 요청 지연 처리
+  public void delayOutbound(int outboundId) throws SQLException {
+    String query = "UPDATE outbound SET outbound_type = 'SHIPMENTDELAYED' WHERE id = ?";
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query)) {
+      ps.setInt(1, outboundId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("출고 요청을 지연 처리하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
