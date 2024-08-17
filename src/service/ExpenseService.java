@@ -2,6 +2,8 @@ package service;
 
 import dao.ExpenseDao;
 import domain.Expense;
+import dto.ExpenseEditDto;
+import dto.ExpenseSaveDto;
 import dto.ProfitDto;
 import dto.TotalAssetDto;
 
@@ -13,10 +15,12 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ExpenseService {
     private static final ExpenseDao expenseDao = new ExpenseDao();
+    private static final WarehouseService warehouseService = new WarehouseService();
     private static final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     /**
@@ -133,6 +137,250 @@ public class ExpenseService {
     }
 
     /**
+     * 지출 등록
+     * 총 관리자: 모든 창고에 대한 지출 등록 가능
+     * 창고 관리자: 자신이 관리하는 창고의 지출만 등록 가능
+     *
+     * @User: 총 관리자, 창고 관리자
+     */
+    public void saveExpense(User user) throws IOException {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            int result = 0;
+
+            switch (user.getRoleType().toString()) {
+                case "ADMIN" -> result = expenseDao.saveExpense(con, ExpenseSaveDto.builder()
+                        .warehouseId(createValidWarehouseId())
+                        .expenseDate(createValidDate())
+                        .categoryId(createValidCategoryId())
+                        .expenseAmount(createValidAmount())
+                        .description(createValidDescription())
+                        .paymentMethod(createValidPaymentMethod())
+                        .build());
+
+                case "WAREHOUSE_MANAGER" -> result = expenseDao.saveExpense(con, ExpenseSaveDto.builder()
+                        .warehouseId(warehouseService.findWarehouseByManagerId(user).getId())
+                        .expenseDate(createValidDate())
+                        .categoryId(createValidCategoryId())
+                        .expenseAmount(createValidAmount())
+                        .description(createValidDescription())
+                        .paymentMethod(createValidPaymentMethod())
+                        .build());
+            }
+
+            if (result == 1) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
+     * 지출 수정
+     * 총 관리자: 모든 지출 내역 수정 가능
+     * 창고 관리자: 자신이 등록한 지출 내역만 수정 가능
+     *
+     * @User: 총 관리자, 창고 관리자
+     */
+    public void updateExpense(User user) throws IOException {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            int result = 0;
+
+            switch (user.getRoleType().toString()) {
+                case "ADMIN" -> result = expenseDao.updateExpense(con, ExpenseEditDto.builder()
+                        .id(findValidExpenseId(expenseDao.findAll(con), user))
+                        .expenseDate(createValidDate())
+                        .categoryId(createValidCategoryId())
+                        .expenseAmount(createValidAmount())
+                        .description(createValidDescription())
+                        .paymentMethod(createValidPaymentMethod())
+                        .build());
+
+                case "WAREHOUSE_MANAGER" -> result = expenseDao.updateExpense(con, ExpenseEditDto.builder()
+                        .id(findValidExpenseId(expenseDao.findById(con, user.getId()), user))
+                        .expenseDate(createValidDate())
+                        .categoryId(createValidCategoryId())
+                        .expenseAmount(createValidAmount())
+                        .description(createValidDescription())
+                        .paymentMethod(createValidPaymentMethod())
+                        .build());
+            }
+
+            if (result == 1) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
+     * 유효한 지출일을 입력 받음
+     *
+     * @return 지출일
+     */
+    private LocalDate createValidDate() throws IOException {
+        String year;
+        String month;
+        String day;
+
+        while (true) {
+            System.out.println("\n지출일을 입력합니다.\n");
+            System.out.print("연도 입력 (2023~2024): ");
+            year = br.readLine();
+
+            if (isNotNumber(year)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+            if (Integer.parseInt(year) != 2023 && Integer.parseInt(year) != 2024) {
+                System.out.println("\n잘못된 연도 입니다.\n");
+                continue;
+            }
+
+            System.out.print("월 입력 (1~12): ");
+            month = br.readLine();
+
+            if (isNotNumber(month)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+            if (Integer.parseInt(month) < 1 || Integer.parseInt(month) > 12) {
+                System.out.println("\n잘못된 월입니다.\n");
+                continue;
+            } else if (Integer.parseInt(month) == 2) {
+                System.out.print("일 입력 (1~28): ");
+                day = br.readLine();
+
+                if (isNotNumber(day)) {
+                    System.out.println("숫자가 아닙니다.");
+                    continue;
+                }
+                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 28) {
+                    System.out.println("\n잘못된 일입니다.\n");
+                    continue;
+                }
+            } else if (Integer.parseInt(month) == 1 || Integer.parseInt(month) == 3 || Integer.parseInt(month) == 5 ||
+                    Integer.parseInt(month) == 7 || Integer.parseInt(month) == 8 || Integer.parseInt(month) == 10 || Integer.parseInt(month) == 12) {
+                System.out.print("일 입력 (1~31): ");
+                day = br.readLine();
+
+                if (isNotNumber(day)) {
+                    System.out.println("숫자가 아닙니다.");
+                    continue;
+                }
+                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 31) {
+                    System.out.println("\n잘못된 일입니다.\n");
+                    continue;
+                }
+            } else {
+                System.out.print("일 입력 (1~31): ");
+                day = br.readLine();
+
+                if (isNotNumber(day)) {
+                    System.out.println("숫자가 아닙니다.");
+                    continue;
+                }
+                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 30) {
+                    System.out.println("\n잘못된 일입니다.\n");
+                    continue;
+                }
+            }
+            return LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
+        }
+    }
+
+    /**
+     * 유효한 지출비를 입력 받음
+     *
+     * @return 지출비
+     */
+    private double createValidAmount() throws IOException {
+        String amount;
+
+        while (true) {
+            System.out.println("\n가격을 입력하세요.\n");
+            amount = br.readLine();
+
+            if (isNotNumber(amount)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+            if (Double.parseDouble(amount) < 0) {
+                System.out.println("\n0원 이하는 입력할 수 없습니다.\n");
+                continue;
+            }
+            return Double.parseDouble(amount);
+        }
+    }
+
+    /**
+     * 유효한 지출 설명을 입력 받음
+     *
+     * @return 지출 설명
+     */
+    private String createValidDescription() throws IOException {
+        String description;
+
+        while (true) {
+            System.out.println("\n지출에 대한 설명을 입력하시겠습니까?\n");
+            System.out.println("1. 예 | 2. 아니오");
+            description = br.readLine();
+
+            if (isNotNumber(description)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+            if (Integer.parseInt(description) == 2) {
+                return "";
+            } else if (Integer.parseInt(description) == 1) {
+                System.out.println("\n지출에 대한 설명을 입력해주세요.\n");
+                return br.readLine();
+            }
+        }
+    }
+
+    /**
+     * 유효한 지출 방법을 입력 받음
+     *
+     * @return 지출 방법 번호
+     */
+    private String createValidPaymentMethod() throws IOException {
+        String paymentMethod;
+
+        while (true) {
+            System.out.println("\n지출 방법을 선택해세요.\n");
+            System.out.println("1. 카드 | 2. 계좌이체");
+            paymentMethod = br.readLine();
+
+            if (isNotNumber(paymentMethod)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+
+            if (Integer.parseInt(paymentMethod) == 1) {
+                return "카드";
+            } else if (Integer.parseInt(paymentMethod) == 2) {
+                return "계좌이체";
+            }
+        }
+    }
+
+    /**
      * 유효한 지출 구분을 입력 받음
      *
      * @return 지출 구분 카테고리 번호
@@ -179,6 +427,61 @@ public class ExpenseService {
                 return Integer.parseInt(year);
             } else {
                 System.out.println("\n조회할 수 없는 숫자입니다.\n");
+            }
+        }
+    }
+
+    /**
+     * 유효한 창고 번호를 입력 받음
+     * 총 관리자가 지출을 등록할 때 사용
+     *
+     * @return 창고 번호
+     */
+    private int createValidWarehouseId() throws IOException {
+        while (true) {
+            List<Warehouse> warehouses = warehouseService.findWarehouses();
+            warehouseService.printWarehouses(warehouses);
+            System.out.println("\n창고를 선택하세요.\n");
+            System.out.print("창고 번호: ");
+            String warehouseId = br.readLine();
+
+            if (isNotNumber(warehouseId)) {
+                System.out.println("숫자가 아닙니다.\n");
+                continue;
+            }
+
+            if (warehouses.stream()
+                    .map(Warehouse::getId)
+                    .anyMatch(n -> n == Integer.parseInt(warehouseId))) {
+                return Integer.parseInt(warehouseId);
+            } else {
+                System.out.println("찾을 수 없는 창고입니다.");
+            }
+        }
+    }
+
+    /**
+     * 유효한 지출 번호를 입력 받음
+     * 지출 내역 수정 및 삭제 시 사용
+     */
+    private int findValidExpenseId(List<Expense> expenses, User user) throws IOException {
+        while (true) {
+            findExpenses(user);
+            System.out.println("\n지출 내역의 번호를 선택하세요.\n");
+            System.out.print("번호 입력: ");
+            String expenseId = br.readLine();
+
+            if (isNotNumber(expenseId)) {
+                System.out.println("숫자가 아닙니다.");
+                continue;
+            }
+
+            if (expenses.stream()
+                    .map(Expense::getId)
+                    .anyMatch(n -> n == Integer.parseInt(expenseId))) {
+                return Integer.parseInt(expenseId);
+            } else {
+                System.out.println("\n조회할 수 없는 지출 건입니다.\n");
             }
         }
     }
@@ -232,6 +535,16 @@ public class ExpenseService {
                 new DecimalFormat("###,###원").format(asset.getSumProfit()),
                 new DecimalFormat("###,###원").format(asset.getNetProfit()),
                 new DecimalFormat("#.##%").format(asset.getNetProfitPer()));
+    }
+
+    private void transactionRollback(Connection con) {
+        try {
+            if (con != null) {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void connectionClose(Connection con) {

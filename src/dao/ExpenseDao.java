@@ -2,6 +2,8 @@ package dao;
 
 import domain.Expense;
 import domain.ExpenseCategory;
+import dto.ExpenseEditDto;
+import dto.ExpenseSaveDto;
 import dto.ProfitDto;
 import dto.TotalAssetDto;
 
@@ -322,6 +324,59 @@ public class ExpenseDao {
                     .netProfit(rs.getDouble("net_profit"))
                     .netProfitPer(rs.getDouble("net_profit_per"))
                     .build();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int saveExpense(Connection con, ExpenseSaveDto request) {
+        String query = new StringBuilder()
+                .append("INSERT INTO expense (warehouse_id, expense_date, category_id, expense_amount, description, payment_method) VALUES ")
+                .append("(?, ?, ?, ?, ?, ? ) ").toString();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, request.getWarehouseId());
+            pstmt.setDate(2, java.sql.Date.valueOf(request.getExpenseDate()));
+            pstmt.setInt(3, request.getCategoryId());
+            pstmt.setDouble(4, request.getExpenseAmount());
+            pstmt.setString(5, request.getDescription());
+            pstmt.setString(6, request.getPaymentMethod());
+
+            if (pstmt.executeUpdate() == 1) {
+                con.commit();
+                System.out.println("지출이 등록되었습니다.");
+                return 1;
+            } else {
+                throw new RuntimeException("지출을 등록할 수 없습니다.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int updateExpense(Connection con, ExpenseEditDto request) {
+        String query = new StringBuilder()
+                .append("UPDATE expense ")
+                .append("SET expense_date = ? , category_id = ? , expense_amount = ? , description = ? , payment_method = ? ")
+                .append("WHERE id = ? ").toString();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setDate(1, java.sql.Date.valueOf(request.getExpenseDate()));
+            pstmt.setInt(2, request.getCategoryId());
+            pstmt.setDouble(3, request.getExpenseAmount());
+            pstmt.setString(4, request.getDescription());
+            pstmt.setString(5, request.getPaymentMethod());
+            pstmt.setInt(6, request.getId());
+
+            if (pstmt.executeUpdate() == 1) {
+                con.commit();
+                System.out.println("지출 내역이 수정되었습니다.");
+                return 1;
+            } else {
+                throw new RuntimeException("해당 지출 내역을 수정할 수 없습니다.");
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
