@@ -93,4 +93,30 @@ public class OutboundDao {
     }
     return outbounds;
   }
+
+  // 승인된 출고 리스트 조회
+  public List<OutboundDto> findApprovedOutbounds() throws SQLException {
+    String query = "SELECT buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity FROM outbound WHERE outbound_type = 'APPROVED'";
+    List<OutboundDto> outbounds = new ArrayList<>();
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ResultSet rs = ps.executeQuery()) {
+      while (rs.next()) {
+        OutboundDto outbound = new OutboundDto(
+            rs.getString("buyer_name"),
+            rs.getInt("buyer_region_id"),
+            rs.getString("buyer_city"),
+            rs.getString("buyer_address"),
+            rs.getString("product_name"),
+            rs.getInt("product_quantity"),
+            "APPROVED"
+        );
+        outbounds.add(outbound);
+      }
+    } catch (SQLException e) {
+      System.out.println("승인된 출고 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return outbounds;
+  }
 }
