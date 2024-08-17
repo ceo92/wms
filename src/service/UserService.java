@@ -216,8 +216,13 @@ public class UserService { //스프링 시큐리티의 UserDetails를 서비스�
 
   public User findByLoginEmail(String loginEmail) throws SQLException {
     Connection con = getConnection();
-    return userDao.findAll(con).stream().filter(user -> user.getLoginEmail().equals(loginEmail))
-        .findFirst().orElseThrow(()-> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+    con.setReadOnly(true);
+    User findUser = userDao.findAll(con).stream()
+        .filter(user -> user.getLoginEmail().equals(loginEmail))
+        .findFirst().orElseThrow(() -> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+    con.setReadOnly(false);
+    closeConnection(con);
+    return findUser;
   }
 
   public User findByLoginEmailAndPassword(String loginEmail , String password) throws SQLException {
