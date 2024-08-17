@@ -102,6 +102,32 @@ public class InboundService {
     }
 
     /**
+     * 월별 입고 현황 조회
+     *
+     * @param year 연도 문자열
+     * @param month 월 문자열
+     * @return
+     */
+    public List<Inbound> findInboundsByYearMonth(String year, String month) {
+        // TODO: year, month 검증
+        LocalDate fromDate = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1);
+        LocalDate toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<Inbound> inbounds = inboundDao.findInboundsByPeriod(con, fromDate, toDate);
+            con.setReadOnly(false);
+            return inbounds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+
+    /**
      * 문자열을 LocalDate 타입으로 변환
      *
      * @param dateString
