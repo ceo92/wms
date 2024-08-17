@@ -158,6 +158,26 @@ public class InboundService {
     }
 
     /**
+     * 입고 품목 조회
+     * @param inboundId
+     * @return
+     */
+    public List<InboundItem> findInboundItems(int inboundId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<InboundItem> items = inboundItemDao.findItemsByInboundId(con, inboundId);
+            con.setReadOnly(false);
+            return items;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
      * 문자열을 LocalDate 타입으로 변환
      *
      * @param dateString
