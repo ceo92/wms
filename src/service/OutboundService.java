@@ -21,4 +21,14 @@ public class OutboundService {
       throw e;
     }
   }
+
+  // 미승인 출고 요청 조회
+  public List<OutboundDto> viewNonApprovedOutbounds() throws SQLException {
+    try {
+      return outboundDao.findNonApprovedOutbounds();
+    } catch (SQLException e) {
+      System.out.println("미승인 출고 요청을 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
