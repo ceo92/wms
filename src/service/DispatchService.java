@@ -38,4 +38,18 @@ public class DispatchService {
       throw e;
     }
   }
+
+  // 배차정보 수정: 배차를 다른 배송기사로 변경
+  public void modifyDispatch(int dispatchId, DeliveryMan newDeliveryMan) throws SQLException {
+    try {
+      Dispatch dispatch = dispatchDao.findAssignedDispatchById(dispatchId);
+      if (dispatch != null) {
+        dispatch.setDelivery_man(newDeliveryMan);
+        dispatchDao.updateDispatch(dispatch);
+      }
+    } catch (SQLException e) {
+      System.out.println("배차 정보를 수정하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
