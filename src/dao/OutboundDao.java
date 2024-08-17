@@ -35,4 +35,21 @@ public class OutboundDao {
     }
   }
 
+  // ID로 출고 요청 정보 조회
+  public Outbound findOutboundById(int outboundId) throws SQLException {
+    String sql = "SELECT * FROM outbound WHERE id = ?";
+    try (Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, outboundId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return mapOutbound(rs);
+        }
+      }
+    } catch (SQLException e) {
+      System.out.println("출고 요청 정보를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return null; // 해당 ID의 출고 요청 정보가 없는 경우
+  }
 }
