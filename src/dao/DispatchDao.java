@@ -33,4 +33,24 @@ public class DispatchDao {
     }
     return dispatches;
   }
+
+  // 배차 할당 상태의 배차 정보 목록 조회
+  public List<Dispatch> findAssignedDispatches() throws SQLException {
+    String sql = "SELECT * FROM dispatch WHERE dispatchType = ?";
+    List<Dispatch> dispatches = new ArrayList<>();
+    try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(sql)) {
+      pstmt.setString(1, DispatchType.ASSIGNED.name());
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          Dispatch dispatch = mapDispatch(rs);
+          dispatches.add(dispatch);
+        }
+      }
+    } catch (SQLException e) {
+      System.out.println("배차 할당 목록을 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+    return dispatches;
+  }
 }
