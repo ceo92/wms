@@ -69,4 +69,14 @@ public class OutboundService {
       throw e;
     }
   }
+
+  // 출고 지시서 보기
+  public List<DispatchDto> viewOutboundInstructions() throws SQLException {
+    try {
+      return outboundDao.findOutboundInstructions();
+    } catch (SQLException e) {
+      System.out.println("출고 지시서를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
