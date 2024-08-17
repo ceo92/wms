@@ -72,4 +72,17 @@ public class WaybillDao {
       throw e;
     }
   }
+
+  // 운송장 정보 매핑 (ResultSet을 Waybill 객체로 변환)
+  private Waybill mapWaybill(ResultSet rs) {
+    Waybill waybill = new Waybill();
+    try {
+      waybill.setId(rs.getInt("id"));  // Waybill ID 매핑
+      waybill.setDispatchId(rs.getInt("dispatch_id"));  // Dispatch ID 매핑
+    } catch (SQLException e) {
+      System.out.println("Waybill 데이터를 매핑하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw new RuntimeException(e);
+    }
+    return waybill;
+  }
 }
