@@ -59,4 +59,14 @@ public class OutboundService {
       throw e;
     }
   }
+
+  // 출고 상품 검색
+  public List<OutboundDto> searchApprovedOutbounds(String productName) throws SQLException {
+    try {
+      return outboundDao.searchApprovedOutbounds(productName);
+    } catch (SQLException e) {
+      System.out.println("출고 상품을 검색하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
