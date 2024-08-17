@@ -3,6 +3,7 @@ package dao;
 import domain.Expense;
 import domain.ExpenseCategory;
 import dto.ProfitDto;
+import dto.TotalAssetDto;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -286,6 +287,41 @@ public class ExpenseDao {
                 }
             }
             return profits;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public TotalAssetDto findTotalAsset(Connection con) {
+        String query = new StringBuilder()
+                .append("WITH year_sum_expense AS ( ")
+                .append("SELECT YEAR(expense_date) AS year1, SUM(expense_amount) AS sum_expense ")
+                .append("FROM expense ")
+                .append("GROUP BY year1), ")
+                .append("year_sum_profit AS ( ")
+                .append("SELECT YEAR(contract_date) AS year2, SUM(price_per_area * capacity * contract_month) AS sum_profit ")
+                .append("FROM warehouse_contract wc ")
+                .append("JOIN warehouse w ON wc.warehouse_id = w.id ")
+                .append("GROUP BY year2), ")
+                .append("ranked AS( ")
+                .append("SELECT yse.year1, yse.sum_expense, ysp.sum_profit, (ysp.sum_profit - yse.sum_expense)AS net_profit, ROW_NUMBER()OVER(ORDER BY yse.year1)AS rn ")
+                .append("FROM year_sum_expense yse ")
+                .append("JOIN year_sum_profit ysp ON yse.year1 = ysp.year2 ) ")
+                .append("SELECT sum_expense, sum_profit, net_profit, ")
+                .append("((SELECT net_profit FROM ranked WHERE rn = 2) - ")
+                .append("(SELECT net_profit FROM ranked WHERE rn = 1)) / (SELECT net_profit FROM ranked WHERE rn = 1) AS net_profit_per ")
+                .append("FROM ranked; ").toString();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+            rs.next();
+            rs.next();
+            return TotalAssetDto.builder()
+                    .sumExpense(rs.getDouble("sum_expense"))
+                    .sumProfit(rs.getDouble("sum_profit"))
+                    .netProfit(rs.getDouble("net_profit"))
+                    .netProfitPer(rs.getDouble("net_profit_per"))
+                    .build();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

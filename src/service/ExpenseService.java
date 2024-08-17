@@ -3,6 +3,7 @@ package service;
 import dao.ExpenseDao;
 import domain.Expense;
 import dto.ProfitDto;
+import dto.TotalAssetDto;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -113,6 +114,25 @@ public class ExpenseService {
     }
 
     /**
+     * 총정산 내역 조회 (지출계, 매출계, 순수익, 순수익 증감률)
+     *
+     * @User: 총 관리자
+     */
+    public void findTotalAsset() {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+
+            printTotalAsset(expenseDao.findTotalAsset(con));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
      * 유효한 지출 구분을 입력 받음
      *
      * @return 지출 구분 카테고리 번호
@@ -198,6 +218,20 @@ public class ExpenseService {
                     new SimpleDateFormat("yyyy-MM-dd").format(Date.valueOf(profit.getContractDate())),
                     new DecimalFormat("###,###원").format(profit.getProfit()));
         }
+    }
+
+    private void printTotalAsset(TotalAssetDto asset) {
+        System.out.println("\n\n[2024년 총정산]");
+        System.out.println("-".repeat(100));
+        System.out.printf("%-15s| %-15s | %-15s | %-15s |\n",
+                "지출계", "매출계", "순수익", "순수익 증감률");
+        System.out.println("-".repeat(100));
+
+        System.out.printf("%-20s%-20s%-20s%s\n",
+                new DecimalFormat("###,###원").format(asset.getSumExpense()),
+                new DecimalFormat("###,###원").format(asset.getSumProfit()),
+                new DecimalFormat("###,###원").format(asset.getNetProfit()),
+                new DecimalFormat("#.##%").format(asset.getNetProfitPer()));
     }
 
     private void connectionClose(Connection con) {
