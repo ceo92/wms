@@ -178,6 +178,42 @@ public class InboundService {
     }
 
     /**
+     * 입고 지시서 출력
+     *
+     * @param id 입고 id
+     * @return
+     */
+    public String generateInboundOrder(int id) {
+        Inbound inbound = findInboundById(id);
+        List<InboundItem> inboundItems = findInboundItems(inbound.getId());
+        StringBuilder sb = new StringBuilder();
+        sb.append("#########################################");
+        sb.append("              입 고 지 시 서");
+        if(inbound.getUser() instanceof BusinessMan businessMan) {
+            sb.append("화주사: ").append(businessMan.getBusinessName());
+        }
+        sb.append("물류센터: ").append(inbound.getWarehouse().getName());
+        sb.append("입고번호: ").append(inbound.getId());
+        sb.append("공급사: ").append(inbound.getVendor().getName());
+        if(InboundStatus.COMPLETED.equals(inbound.getStatus())) {
+            sb.append("입고완료일자: ").append(formatDateString(inbound.getInboundCompletedDate()));
+        } else {
+            sb.append("입고예정일자: ").append(formatDateString(inbound.getInboundExpectedDate()));
+        }
+        sb.append("출력 일시: ").append(formatDateString(LocalDateTime.now()));
+        sb.append(String.format("%5s %15s %30s %8s %8s", "No", "상품코드", "상품명", "요청수량", "완료수량"));
+        sb.append("---------------------------------------------------------------------------------------------------------");
+        AtomicInteger noCnt = new AtomicInteger(1);
+        inboundItems.forEach(item -> sb.append(String.format("%5s %15s %30s %8s %8s",
+                noCnt.getAndIncrement(),
+                item.getProduct().getCode(),
+                item.getProduct().getName(),
+                item.getRequestQuantity(),
+                item.getCompleteQuantity())));
+        return sb.toString();
+    }
+
+    /**
      * 문자열을 LocalDate 타입으로 변환
      *
      * @param dateString
@@ -189,6 +225,32 @@ public class InboundService {
         } catch (DateTimeParseException e) {
             throw new RuntimeException("날짜 형식이 올바르지 않습니다. yyyy-mm-dd 형식으로 입력해주세요.");
         }
+    }
+
+    /**
+     * LocalDate 타입을 문자열로 포맷팅
+     *
+     * @param date
+     * @return
+     */
+    private String formatDateString(LocalDate date) {
+        if(date == null) {
+            return "-";
+        }
+        return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+    /**
+     * LocalDateTime 타입을 문자열로 포맷팅
+     *
+     * @param dateTime
+     * @return
+     */
+    private String formatDateString(LocalDateTime dateTime) {
+        if(dateTime == null) {
+            return "-";
+        }
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
     /**
