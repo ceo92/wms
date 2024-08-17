@@ -2,7 +2,9 @@ package service;
 
 import connection.DriverManagerDBConnectionUtil;
 import dao.InboundDao;
-import dao.InboundItemDao;;
+import dao.InboundItemDao;
+import dao.StockDao;
+import dao.StockSectionDao;
 import domain.*;
 
 import java.sql.Connection;
@@ -38,6 +40,28 @@ public class InboundService {
         } finally {
             connectionClose(con);
         }
+    }
+
+    /**
+     * 입고 단건 조회
+     *
+     * @param id 입고 id
+     * @return
+     */
+    public Inbound findInboundById(int id) {
+        // TODO: id 검증
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            Inbound inbound = inboundDao.findById(con, id).orElseThrow(
+                    () -> new RuntimeException("존재하지 않는 입고 요청입니다."));
+            con.setReadOnly(false);
+            return inbound;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**
