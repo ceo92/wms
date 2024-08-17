@@ -1,10 +1,44 @@
 package service;
 
+import connection.DriverManagerDBConnectionUtil;
+import dao.InboundDao;
+import dao.InboundItemDao;;
+import domain.*;
+
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 public class InboundService {
 
+    private final InboundDao inboundDao = new InboundDao();
+    private final InboundItemDao inboundItemDao = new InboundItemDao();
+
+    /**
+     * 입고, 입고 품목 등록
+     *
+     * @param inbound
+     * @param items
+     */
+    public void saveInbound(Inbound inbound, List<InboundItem> items) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            int inboundId = inboundDao.save(con, inbound);
+            boolean result = inboundItemDao.saveInboundItems(con, inboundId, items);
+            if(result) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
     /**
      * 트랜잭션 롤백
