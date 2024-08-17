@@ -13,4 +13,11 @@ public class InquiryService {
     Inquiry inquiry = new Inquiry(title, content, false, password, 2, null); // roleId 2: 회원, guestId 없음
     inquiryDao.save(inquiry);
   }
+
+  public void viewAllInquiries() throws SQLException {
+    List<Inquiry> inquiries = inquiryDao.findAll();
+    for (Inquiry inquiry : inquiries) {
+      System.out.println("ID: " + inquiry.getId() + ", 제목: " + inquiry.getTitle() + ", 내용: " + inquiry.getContent());
+    }
+  }
 }
