@@ -9,12 +9,20 @@ import domain.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class InboundService {
 
+
     private final InboundDao inboundDao = new InboundDao();
+    private final StockSectionDao stockSectionDao = new StockSectionDao();
     private final InboundItemDao inboundItemDao = new InboundItemDao();
+    private final StockDao stockDao = new StockDao();
 
     /**
      * 입고, 입고 품목 등록
@@ -62,6 +70,49 @@ public class InboundService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    /**
+     * 기간별 입고 현황 조회
+     *
+     * @param fromDateStr 시작 날짜 문자열
+     * @param toDateStr 종료 날짜 문자열
+     * @return
+     */
+    public List<Inbound> findInboundsByPeriod(String fromDateStr, String toDateStr) {
+        LocalDate fromDate = convertStringToDate(fromDateStr);
+        LocalDate toDate = convertStringToDate(toDateStr);
+        if(fromDate.isAfter(toDate)) {
+            throw new RuntimeException("시작 날짜는 종료 날짜와 같거나 이전 날짜로 입력해주세요.");
+        } else if(toDate.isAfter(LocalDate.now())) {
+            throw new RuntimeException("종료 날짜는 현재 날짜와 같거나 이전 날짜로 입력해주세요.");
+        }
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<Inbound> inbounds = inboundDao.findInboundsByPeriod(con, fromDate, toDate);
+            con.setReadOnly(false);
+            return inbounds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
+     * 문자열을 LocalDate 타입으로 변환
+     *
+     * @param dateString
+     * @return
+     */
+    private LocalDate convertStringToDate(String dateString) {
+        try {
+            return LocalDate.parse(dateString, DateTimeFormatter.ISO_DATE);
+        } catch (DateTimeParseException e) {
+            throw new RuntimeException("날짜 형식이 올바르지 않습니다. yyyy-mm-dd 형식으로 입력해주세요.");
+        }
     }
 
     /**
