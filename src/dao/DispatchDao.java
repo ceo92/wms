@@ -71,4 +71,19 @@ public class DispatchDao {
     }
     return null; // 해당 ID의 배차 정보가 없는 경우
   }
+
+  // 배차 정보 업데이트 (배차 상태 변경 및 배송기사 변경)
+  public void updateDispatch(Dispatch dispatch) throws SQLException {
+    String sql = "UPDATE dispatch SET dispatchType = ?, delivery_man_id = ? WHERE id = ?";
+    try (Connection con = Database.getConnection();
+        PreparedStatement pstmt = con.prepareStatement(sql)) {
+      pstmt.setString(1, dispatch.getDispatchType().name());
+      pstmt.setInt(2, dispatch.getDelivery_man().getRoleId());
+      pstmt.setInt(3, dispatch.getId());
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      System.out.println("배차 정보를 업데이트하는 중 오류가 발생했습니다: " + e.getMessage());
+      throw e;
+    }
+  }
 }
