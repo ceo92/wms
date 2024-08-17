@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -358,7 +359,7 @@ public class ExpenseDao {
     public int updateExpense(Connection con, ExpenseEditDto request) {
         String query = new StringBuilder()
                 .append("UPDATE expense ")
-                .append("SET expense_date = ? , category_id = ? , expense_amount = ? , description = ? , payment_method = ? ")
+                .append("SET expense_date = ? , category_id = ? , expense_amount = ? , description = ? , payment_method = ? , mod_date = ? ")
                 .append("WHERE id = ? ").toString();
 
         try (PreparedStatement pstmt = con.prepareStatement(query)) {
@@ -368,7 +369,8 @@ public class ExpenseDao {
             pstmt.setDouble(3, request.getExpenseAmount());
             pstmt.setString(4, request.getDescription());
             pstmt.setString(5, request.getPaymentMethod());
-            pstmt.setInt(6, request.getId());
+            pstmt.setTimestamp(6, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+            pstmt.setInt(7, request.getId());
 
             if (pstmt.executeUpdate() == 1) {
                 con.commit();
