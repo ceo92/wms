@@ -9,7 +9,6 @@ import dto.StockEditDto;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.util.List;
 
 public class StockService {
@@ -21,12 +20,12 @@ public class StockService {
      *
      * @User: 총 관리자
      */
-    public void findAllStocks() {
+    public List<StockDto> findAllStocks() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printStocks(stockDao.findAll(con));
+            return stockDao.findAll(con);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -40,12 +39,12 @@ public class StockService {
      * @param id: 창고 관리자 id
      * @User: 창고 관리자
      */
-    public void findAllStocksByManagerId(Integer id) {
+    public List<StockDto> findAllStocksByManagerId(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printStocks(stockDao.findByManagerId(con, id));
+            return stockDao.findByManagerId(con, id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -59,12 +58,12 @@ public class StockService {
      * @param id: 사업자 id
      * @User: 사업자
      */
-    public void findAllStocksByBusinessManId(Integer id) {
+    public List<StockDto> findAllStocksByBusinessManId(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printStocks(stockDao.findByBusinessManId(con, id));
+            return stockDao.findByBusinessManId(con, id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -78,12 +77,12 @@ public class StockService {
      * @param categoryId: 카테고리 id
      * @User: 총 관리자
      */
-    public void findStocksByParentId(Integer categoryId) {
+    public List<StockDto> findStocksByParentId(Integer categoryId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printStocks(stockDao.findByParentId(con, categoryId));
+            return stockDao.findByParentId(con, categoryId);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -98,12 +97,12 @@ public class StockService {
      * @param categoryId: 카테고리 id
      * @User: 창고 관리자
      */
-    public void findStocksByParentIdAndManagerId(Integer id, Integer categoryId) {
+    public List<StockDto> findStocksByParentIdAndManagerId(Integer id, Integer categoryId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printStocks(stockDao.findByParentIdAndManagerId(con, id, categoryId));
+            return stockDao.findByParentIdAndManagerId(con, id, categoryId);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -118,12 +117,12 @@ public class StockService {
      * @param categoryId: 카테고리 id
      * @User: 사업자
      */
-    public void findStocksByParentIdAndBusinessManId(Integer id, Integer categoryId) {
+    public List<StockDto> findStocksByParentIdAndBusinessManId(Integer id, Integer categoryId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printStocks(stockDao.findByParentIdAndBusinessManId(con, id, categoryId));
+            return stockDao.findByParentIdAndBusinessManId(con, id, categoryId);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -207,24 +206,6 @@ public class StockService {
             transactionRollback(con);
         } finally {
             connectionClose(con);
-        }
-    }
-
-    private void printStocks(List<StockDto> stocks) {
-        System.out.print("\n\n[재고 현황]\n");
-        System.out.println("-".repeat(200));
-        System.out.printf("%-5s | %-10s | %-45s| %-15s | %-15s | %-20s | %-10s | %-20s | %-20s\n",
-                "번호", "제품코드", "제품명", "창고위치", "재고위치", "원가", "수량", "제조일자", "유효기간");
-        System.out.println("-".repeat(200));
-
-        for (StockDto stock : stocks) {
-            System.out.printf("%-10d%-15s%-45s%-20s%-20s%-20s%-20s%-1d.%-1d.%-1d %-1d:%-1d:%-10d%-1d.%-1d.%-1d %-1d:%-1d:%-1d\n",
-                    stock.getId(), stock.getProductCode(), stock.getProductName(), stock.getWarehouseName(), stock.getSectionName(),
-                    new DecimalFormat("###,###원").format(stock.getCostPrice()), new DecimalFormat("###,###개").format(stock.getQuantity()),
-                    stock.getManufacturedDate().getYear(), stock.getManufacturedDate().getMonthValue(), stock.getManufacturedDate().getDayOfMonth(),
-                    stock.getManufacturedDate().getHour(), stock.getManufacturedDate().getMinute(), stock.getManufacturedDate().getSecond(),
-                    stock.getExpirationDate().getYear(), stock.getExpirationDate().getMonthValue(), stock.getExpirationDate().getDayOfMonth(),
-                    stock.getExpirationDate().getHour(), stock.getExpirationDate().getMinute(), stock.getExpirationDate().getSecond());
         }
     }
 
