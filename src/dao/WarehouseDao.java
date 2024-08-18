@@ -251,4 +251,19 @@ public class WarehouseDao {
         }
     }
 
+    public List<WarehouseType> findAllWarehouseType(Connection con) {
+        String sql = "SELECT * FROM warehouse_type";
+        List<WarehouseType> types = new ArrayList<>();
+        try(Statement stmt = con.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs != null && rs.next()) {
+                WarehouseType type = new WarehouseType(rs.getInt("id"), rs.getString("name"));
+                types.add(type);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return types;
+    }
+
 }

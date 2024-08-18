@@ -3,6 +3,7 @@ package service;
 import connection.DriverManagerDBConnectionUtil;
 import dao.WarehouseDao;
 import domain.Warehouse;
+import domain.WarehouseType;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -107,6 +108,20 @@ public class WarehouseService {
             List<Warehouse> warehouseList = dao.findAllByRegionId(con, typeId);
             con.setReadOnly(false);
             return warehouseList;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    public List<WarehouseType> findAllWarehouseType() {
+        Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+        try {
+            con.setReadOnly(true);
+            List<WarehouseType> types = dao.findAllWarehouseType(con);
+            con.setReadOnly(false);
+            return types;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
