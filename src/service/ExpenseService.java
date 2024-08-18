@@ -9,10 +9,7 @@ import dto.ProfitDto;
 import dto.TotalAssetDto;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class ExpenseService {
@@ -23,12 +20,12 @@ public class ExpenseService {
      *
      * @User: 총 관리자
      */
-    public void findAllExpenses() {
+    public List<Expense> findAllExpenses() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printExpenses(expenseDao.findAll(con));
+            return expenseDao.findAll(con);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -42,12 +39,12 @@ public class ExpenseService {
      * @param id: 창고 관리자 id
      * @User: 창고 관리자
      */
-    public void findAllExpensesById(Integer id) {
+    public List<Expense> findAllExpensesById(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printExpenses(expenseDao.findById(con, id));
+            return expenseDao.findById(con, id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -61,12 +58,12 @@ public class ExpenseService {
      * @param categoryId: 지출 구분 id
      * @User: 총 관리자
      */
-    public void findAllExpensesByCategoryId(Integer categoryId) {
+    public List<Expense> findAllExpensesByCategoryId(Integer categoryId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printExpenses(expenseDao.findAllByCategory(con, categoryId));
+            return expenseDao.findAllByCategory(con, categoryId);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -81,12 +78,12 @@ public class ExpenseService {
      * @param categoryId: 지출 구분 id
      * @User: 창고 관리자
      */
-    public void findAllExpensesByIdAndCategory(Integer id, Integer categoryId) {
+    public List<Expense> findAllExpensesByIdAndCategory(Integer id, Integer categoryId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printExpenses(expenseDao.findByCategory(con, id, categoryId));
+            return expenseDao.findByCategory(con, id, categoryId);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -100,12 +97,12 @@ public class ExpenseService {
      * @param year: 연도
      * @User: 총 관리자
      */
-    public void findExpensesByYear(Integer year) {
+    public List<Expense> findExpensesByYear(Integer year) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printExpenses(expenseDao.findAllByYear(con, year));
+            return expenseDao.findAllByYear(con, year);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -120,12 +117,12 @@ public class ExpenseService {
      * @param year: 연도
      * @User: 창고 관리자
      */
-    public void findExpensesByIdAndYear(Integer id, Integer year) {
+    public List<Expense> findExpensesByIdAndYear(Integer id, Integer year) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printExpenses(expenseDao.findByYear(con, id, year));
+            return expenseDao.findByYear(con, id, year);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -138,12 +135,12 @@ public class ExpenseService {
      *
      * @User: 총 관리자
      */
-    public void findAllProfit() {
+    public List<ProfitDto> findAllProfit() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printProfits(expenseDao.findProfits(con));
+            return expenseDao.findProfits(con);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -157,12 +154,12 @@ public class ExpenseService {
      * @param id: 창고 관리자 id
      * @User: 창고 관리자
      */
-    public void findProfitById(Integer id) {
+    public List<ProfitDto> findProfitById(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            printProfits(expenseDao.findProfitById(con, id));
+            return expenseDao.findProfitById(con, id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -175,13 +172,13 @@ public class ExpenseService {
      *
      * @User: 총 관리자
      */
-    public void findTotalAsset() {
+    public TotalAssetDto findTotalAsset() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
 
-            printTotalAsset(expenseDao.findTotalAsset(con));
+            return (expenseDao.findTotalAsset(con));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -265,50 +262,6 @@ public class ExpenseService {
         } finally {
             connectionClose(con);
         }
-    }
-
-    private void printExpenses(List<Expense> expenses) {
-        System.out.println("\n\n[지출 현황]");
-        System.out.println("-".repeat(150));
-        System.out.printf("%-3s| %-5s | %-10s | %-10s | %-15s | %-40s | %-10s |\n",
-                "번호", "창고명", "지출일", "지출구분", "지출금액", "설명", "지출방법");
-        System.out.println("-".repeat(150));
-
-        for (Expense expense : expenses) {
-            System.out.printf("%-5d%-10s%-15s%-15s%-20s%-30s%10s\n",
-                    expense.getId(), expense.getWarehouse().getName(),
-                    new SimpleDateFormat("yyyy-MM-dd").format(Date.valueOf(expense.getExpenseDate())),
-                    expense.getExpenseCategory().getName(), new DecimalFormat("###,###원").format(expense.getExpenseAmount()), expense.getDescription(), expense.getPaymentMethod());
-        }
-    }
-
-    private void printProfits(List<ProfitDto> profits) {
-        System.out.println("\n\n[매출 현황]");
-        System.out.println("-".repeat(100));
-        System.out.printf("%-3s| %-5s | %-10s | %-20s |\n",
-                "순번", "창고명", "계약일", "매출금액");
-        System.out.println("-".repeat(100));
-
-        for (ProfitDto profit : profits) {
-            System.out.printf("%-5d%-10s%-15s%-15s\n",
-                    profits.indexOf(profit) + 1, profit.getName(),
-                    new SimpleDateFormat("yyyy-MM-dd").format(Date.valueOf(profit.getContractDate())),
-                    new DecimalFormat("###,###원").format(profit.getProfit()));
-        }
-    }
-
-    private void printTotalAsset(TotalAssetDto asset) {
-        System.out.println("\n\n[2024년 총정산]");
-        System.out.println("-".repeat(100));
-        System.out.printf("%-15s| %-15s | %-15s | %-15s |\n",
-                "지출계", "매출계", "순수익", "순수익 증감률");
-        System.out.println("-".repeat(100));
-
-        System.out.printf("%-20s%-20s%-20s%s\n",
-                new DecimalFormat("###,###원").format(asset.getSumExpense()),
-                new DecimalFormat("###,###원").format(asset.getSumProfit()),
-                new DecimalFormat("###,###원").format(asset.getNetProfit()),
-                new DecimalFormat("#.##%").format(asset.getNetProfitPer()));
     }
 
     private void transactionRollback(Connection con) {
