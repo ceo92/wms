@@ -100,6 +100,46 @@ public class StockService {
     }
 
     /**
+     * 카테고리별 재고 조회
+     *
+     * @param id:         창고 관리자 id
+     * @param categoryId: 카테고리 id
+     * @User: 창고 관리자
+     */
+    public void findStocksByParentIdAndManagerId(Integer id, Integer categoryId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printStocks(stockDao.findByParentIdAndManagerId(con, id, categoryId));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
+     * 카테고리별 재고 조회
+     *
+     * @param id:         사업자 id
+     * @param categoryId: 카테고리 id
+     * @User: 사업자
+     */
+    public void findStocksByParentIdAndBusinessManId(Integer id, Integer categoryId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printStocks(stockDao.findByParentIdAndBusinessManId(con, id, categoryId));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    /**
      * 재고 등록
      *
      * @User: 총 관리자, 창고 관리자
