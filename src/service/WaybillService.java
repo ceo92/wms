@@ -1,7 +1,10 @@
 package service;
 
+import dao.DispatchDao;
 import dao.WaybillDao;
 import domain.DeliveryMan;
+import domain.Dispatch;
+import domain.DispatchType;
 import domain.Waybill;
 import java.sql.SQLException;
 import java.util.List;
@@ -10,6 +13,7 @@ import java.util.List;
 public class WaybillService {
 
   private final WaybillDao waybillDao = new WaybillDao();
+  private final DispatchDao dispatchDao = new DispatchDao();
 
   // 운송장 등록: 필요한 정보를 바탕으로 운송장 생성
   public void registerWaybill(Waybill waybill) throws SQLException {
@@ -37,7 +41,11 @@ public class WaybillService {
     try {
       Waybill waybill = waybillDao.findWaybillById(waybillId);
       if (waybill != null) {
-        waybill.getDispatchId().setDelivery_man(newDeliveryMan);
+        Dispatch dispatch = dispatchDao.findAssignedDispatchById(waybill.getDispatchId());
+        if (dispatch != null){
+          dispatch.setDelivery_man(newDeliveryMan);
+          dispatchDao.updateDispatch(dispatch);
+        }
         waybillDao.updateWaybill(waybill);
       }
     } catch (SQLException e) {
