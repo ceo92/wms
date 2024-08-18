@@ -33,13 +33,13 @@ public class RegionDao {
         String sql = "SELECT * FROM region WHERE id = ?";
         try(PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery(sql);
+            ResultSet rs = pstmt.executeQuery();
             if(rs != null && rs.next()) {
                 Region region = Region.builder()
                         .id(rs.getInt("id"))
                         .name(rs.getString("name"))
                         .code(rs.getString("code"))
-                        .parentId(rs.getInt("parent_id"))
+                        .parentId((Integer) rs.getObject("parent_id"))
                         .build();
                 return Optional.of(region);
             } else {
