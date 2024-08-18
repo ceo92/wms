@@ -27,23 +27,16 @@ public class ExpenseService {
     private static final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     /**
-     * 지출 조회
-     * 총 관리자: 전체 지출 내역 조회
-     * 창고 관리자: 관리하는 창고의 지출만 조회
+     * 지출 전체 조회
      *
-     * @User: 총 관리자, 창고 관리자
+     * @User: 총 관리자
      */
-    public void findExpenses(User user) {
+    public void findAllExpenses() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> printExpenses(expenseDao.findAll(con));
-
-                case "WAREHOUSE_MANAGER" -> printExpenses(expenseDao.findById(con, user.getId()));
-            }
+            printExpenses(expenseDao.findAll(con));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -52,21 +45,56 @@ public class ExpenseService {
     }
 
     /**
-     * 지출 조회 (필터링: 지출 구분)
+     * 지출 전체 조회
      *
-     * @User: 총 관리자, 창고 관리자
+     * @param id: 창고 관리자 id
+     * @User: 창고 관리자
      */
-    public void findExpensesByCategory(User user) throws IOException {
+    public void findAllExpensesById(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
+            printExpenses(expenseDao.findById(con, id));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> printExpenses(expenseDao.findAllByCategory(con, createValidCategoryId()));
+    /**
+     * 지출 구분별 내역 조회
+     *
+     * @param categoryId: 지출 구분 id
+     * @User: 총 관리자
+     */
+    public void findAllExpensesByCategoryId(Integer categoryId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printExpenses(expenseDao.findAllByCategory(con, categoryId));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
-                case "WAREHOUSE_MANAGER" -> printExpenses(expenseDao.findByCategory(con, user.getId(), createValidCategoryId()));
-            }
+    /**
+     * 지출 구분별 내역 조회
+     *
+     * @param id:         창고 관리자 id
+     * @param categoryId: 지출 구분 id
+     * @User: 창고 관리자
+     */
+    public void findAllExpensesByIdAndCategory(Integer id, Integer categoryId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printExpenses(expenseDao.findByCategory(con, id, categoryId));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -77,19 +105,35 @@ public class ExpenseService {
     /**
      * 연간 지출 내역 조회
      *
-     * @User: 총 관리자, 창고 관리자
+     * @param year: 연도
+     * @User: 총 관리자
      */
-    public void findExpensesByYear(User user) throws IOException {
+    public void findExpensesByYear(Integer year) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
+            printExpenses(expenseDao.findAllByYear(con, year));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> printExpenses(expenseDao.findAllByYear(con, createValidYear()));
-
-                case "WAREHOUSE_MANAGER" -> printExpenses(expenseDao.findByYear(con, user.getId(), createValidYear()));
-            }
+    /**
+     * 연간 지출 내역 조회
+     *
+     * @param id:   창고 관리자 id
+     * @param year: 연도
+     * @User: 창고 관리자
+     */
+    public void findExpensesByIdAndYear(Integer id, Integer year) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printExpenses(expenseDao.findByYear(con, id, year));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
