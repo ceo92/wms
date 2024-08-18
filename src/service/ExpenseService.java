@@ -144,19 +144,33 @@ public class ExpenseService {
     /**
      * 매출 내역 조회
      *
-     * @User: 총 관리자, 창고 관리자
+     * @User: 총 관리자
      */
-    public void findProfit(User user) {
+    public void findAllProfit() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
+            printProfits(expenseDao.findProfits(con));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> printProfits(expenseDao.findProfits(con));
-
-                case "WAREHOUSE_MANAGER" -> printProfits(expenseDao.findProfitById(con, user.getId()));
-            }
+    /**
+     * 매출 내역 조회
+     *
+     * @param id: 창고 관리자 id
+     * @User: 창고 관리자
+     */
+    public void findProfitById(Integer id) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printProfits(expenseDao.findProfitById(con, id));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
