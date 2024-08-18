@@ -1,9 +1,12 @@
 package service;
 
+import connection.DriverManagerDBConnectionUtil;
 import dao.StockDao;
+import dao.StockSectionDao;
 import domain.Product;
 import domain.ProductCategory;
 import domain.Stock;
+import domain.User;
 import dto.StockDto;
 import dto.StockEditDto;
 

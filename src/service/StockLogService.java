@@ -1,5 +1,6 @@
 package service;
 
+import connection.DriverManagerDBConnectionUtil;
 import dao.StockLogDao;
 import domain.StockLog;
 
