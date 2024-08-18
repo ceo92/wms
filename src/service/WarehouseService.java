@@ -1,8 +1,10 @@
 package service;
 
 import connection.DriverManagerDBConnectionUtil;
+import dao.WarehouseContractDao;
 import dao.WarehouseDao;
 import domain.Warehouse;
+import domain.WarehouseContract;
 import domain.WarehouseType;
 
 import java.sql.Connection;
@@ -11,7 +13,8 @@ import java.util.List;
 
 public class WarehouseService {
 
-    private final static WarehouseDao dao = new WarehouseDao();
+    private final static WarehouseDao warehouseDao = new WarehouseDao();
+    private final static WarehouseContractDao warehouseContractDao = new WarehouseContractDao();
 
     public void saveWarehouse(Warehouse warehouse) {
         // TODO: warehouse 검증
@@ -19,7 +22,7 @@ public class WarehouseService {
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
-            boolean result = dao.save(con, warehouse);
+            boolean result = warehouseDao.save(con, warehouse);
             if(result) {
                 con.commit();
             } else {
@@ -33,13 +36,32 @@ public class WarehouseService {
         }
     }
 
-    public Warehouse findOneById(int id) {
+    public void saveWarehouseContract(WarehouseContract contract) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            boolean result = warehouseContractDao.save(con, contract);
+            if(result) {
+                con.commit();
+            } else {
+                con.rollback();
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    public Warehouse findWarehouseById(int id) {
         // TODO: id 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            Warehouse warehouse = dao.findById(con, id).orElseThrow(
+            Warehouse warehouse = warehouseDao.findById(con, id).orElseThrow(
                     () -> new RuntimeException("존재하지 않는 창고입니다."));
             con.setReadOnly(false);
             return warehouse;
@@ -50,13 +72,13 @@ public class WarehouseService {
         }
     }
 
-    public Warehouse findOneByManagerId(int managerId) {
+    public Warehouse findWarehouseByManagerId(int managerId) {
         // TODO: managerId 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            Warehouse warehouse = dao.findByManagerId(con, managerId).orElseThrow(
+            Warehouse warehouse = warehouseDao.findByManagerId(con, managerId).orElseThrow(
                     () -> new RuntimeException("존재하지 않는 창고입니다."));
             con.setReadOnly(false);
             return warehouse;
@@ -73,7 +95,7 @@ public class WarehouseService {
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            List<Warehouse> warehouseList = dao.findAllByName(con, warehouseName);
+            List<Warehouse> warehouseList = warehouseDao.findAllByName(con, warehouseName);
             con.setReadOnly(false);
             return warehouseList;
         } catch (SQLException e) {
@@ -89,7 +111,7 @@ public class WarehouseService {
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            List<Warehouse> warehouseList = dao.findAllByRegionId(con, regionId);
+            List<Warehouse> warehouseList = warehouseDao.findAllByRegionId(con, regionId);
             con.setReadOnly(false);
             return warehouseList;
         } catch (SQLException e) {
@@ -105,7 +127,7 @@ public class WarehouseService {
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            List<Warehouse> warehouseList = dao.findAllByRegionId(con, typeId);
+            List<Warehouse> warehouseList = warehouseDao.findAllByRegionId(con, typeId);
             con.setReadOnly(false);
             return warehouseList;
         } catch (SQLException e) {
@@ -119,9 +141,23 @@ public class WarehouseService {
         Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection();
         try {
             con.setReadOnly(true);
-            List<WarehouseType> types = dao.findAllWarehouseType(con);
+            List<WarehouseType> types = warehouseDao.findAllWarehouseType(con);
             con.setReadOnly(false);
             return types;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
+    public List<WarehouseContract> findWarehouseContractByUserId(int userId) {
+        Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+        try {
+            con.setReadOnly(true);
+            List<WarehouseContract> warehouseContracts = warehouseContractDao.findAllByUserId(con, userId);
+            con.setReadOnly(false);
+            return warehouseContracts;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {

@@ -6,17 +6,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class WarehouseContractDao {
-
-    private Warehouse warehouse;
-    private BusinessMan businessMan;
-    private double capacity;
-    private LocalDate contractDate;
-    private int contractMonth;
 
     public boolean save(Connection con, WarehouseContract contract) {
         String sql = new StringBuilder()
@@ -27,7 +20,7 @@ public class WarehouseContractDao {
         try {
             PreparedStatement pstmt = con.prepareStatement(sql);
             pstmt.setInt(1, contract.getWarehouse().getId());
-            pstmt.setInt(2, businessMan.getId());
+            pstmt.setInt(2, contract.getBusinessMan().getId());
             pstmt.setDouble(3, contract.getCapacity());
             pstmt.setDate(4, java.sql.Date.valueOf(contract.getContractDate()));
             pstmt.setInt(5, contract.getContractMonth());
