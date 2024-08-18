@@ -1,7 +1,12 @@
 package domain;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.LocalDate;
 
+@Getter
+@Builder
 public class WarehouseContract {
 
     private Integer id;
