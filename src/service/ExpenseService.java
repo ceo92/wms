@@ -3,15 +3,11 @@ package service;
 import connection.DriverManagerDBConnectionUtil;
 import dao.ExpenseDao;
 import domain.Expense;
-import domain.User;
 import dto.ExpenseEditDto;
 import dto.ExpenseSaveDto;
 import dto.ProfitDto;
 import dto.TotalAssetDto;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -21,8 +17,6 @@ import java.util.List;
 
 public class ExpenseService {
     private static final ExpenseDao expenseDao = new ExpenseDao();
-    private static final WarehouseService warehouseService = new WarehouseService();
-    private static final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     /**
      * 지출 전체 조회
@@ -228,32 +222,12 @@ public class ExpenseService {
      *
      * @User: 총 관리자, 창고 관리자
      */
-    public void updateExpense(User user) throws IOException {
+    public void updateExpense(ExpenseEditDto request) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
-            int result = 0;
-
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> result = expenseDao.updateExpense(con, ExpenseEditDto.builder()
-                        .id(findValidExpenseId(expenseDao.findAll(con), user))
-                        .expenseDate(createValidDate())
-                        .categoryId(createValidCategoryId())
-                        .expenseAmount(createValidAmount())
-                        .description(createValidDescription())
-                        .paymentMethod(createValidPaymentMethod())
-                        .build());
-
-                case "WAREHOUSE_MANAGER" -> result = expenseDao.updateExpense(con, ExpenseEditDto.builder()
-                        .id(findValidExpenseId(expenseDao.findById(con, user.getId()), user))
-                        .expenseDate(createValidDate())
-                        .categoryId(createValidCategoryId())
-                        .expenseAmount(createValidAmount())
-                        .description(createValidDescription())
-                        .paymentMethod(createValidPaymentMethod())
-                        .build());
-            }
+            int result = expenseDao.updateExpense(con, request);
 
             if (result == 1) {
                 con.commit();
@@ -274,18 +248,12 @@ public class ExpenseService {
      *
      * @User: 총 관리자, 창고 관리자
      */
-    public void deleteExpense(User user) throws IOException {
+    public void deleteExpense(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
-            int result = 0;
-
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> result = expenseDao.deleteExpense(con, findValidExpenseId(expenseDao.findAll(con), user));
-
-                case "WAREHOUSE_MANAGER" -> result = expenseDao.deleteExpense(con, findValidExpenseId(expenseDao.findById(con, user.getId()), user));
-            }
+            int result = expenseDao.deleteExpense(con, id);
 
             if (result == 1) {
                 con.commit();
