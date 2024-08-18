@@ -4,7 +4,6 @@ import connection.DriverManagerDBConnectionUtil;
 import dao.StockDao;
 import dao.StockSectionDao;
 import domain.Product;
-import domain.ProductCategory;
 import domain.Stock;
 import domain.User;
 import dto.StockDto;
@@ -23,30 +22,19 @@ import java.util.List;
 public class StockService {
     private static final StockDao stockDao = new StockDao();
     private static final StockSectionDao stockSectionDao = new StockSectionDao();
-    private static final ProductCategoryService productCategoryService = new ProductCategoryService();
     private static final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     /**
-     * 재고 조회
-     * 총 관리자: 전체 재고 내역 조회
-     * 창고 관리자: 관리하는 창고의 재고만 조회
-     * 사업자: 자신의 재고만 조회
+     * 재고 전체 조회
      *
-     * @User: 총 관리자, 창고 관리자, 사업자
+     * @User: 총 관리자
      */
-    public void findStocks(User user) {
+    public void findAllStocks() {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-
-            switch (user.getRoleType().toString()) {
-                case "ADMIN" -> printStocks(stockDao.findAll(con));
-
-                case "WAREHOUSE_MANAGER" -> printStocks(stockDao.findByManagerId(con, user.getId()));
-
-                case "BUSINESS_MAN" -> printStocks(stockDao.findByBusinessManId(con, user.getId()));
-            }
+            printStocks(stockDao.findAll(con));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -55,61 +43,55 @@ public class StockService {
     }
 
     /**
-     * 카테고리별 재고 조회 (대, 중, 소분류)
+     * 재고 전체 조회
      *
-     * @User: 총 관리자, 창고 관리자, 사업자
+     * @param id: 창고 관리자 id
+     * @User: 창고 관리자
      */
-    public void findStocksByCategories() throws IOException {
+    public void findAllStocksByManagerId(Integer id) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
+            printStocks(stockDao.findByManagerId(con, id));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
-            //대분류 선택
-            System.out.println("\n대분류를 선택하세요.");
-            int mainCategoryId = createValidMainCategoryId();
-            printStocks(stockDao.findByParentId(con, mainCategoryId));
+    /**
+     * 재고 전체 조회
+     *
+     * @param id: 사업자 id
+     * @User: 사업자
+     */
+    public void findAllStocksByBusinessManId(Integer id) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printStocks(stockDao.findByBusinessManId(con, id));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
-            //중분류 선택
-            Loop:
-            while (true) {
-                System.out.println("\n1. 중분류 선택 | 2. 나가기");
-                String input = br.readLine();
-
-                if (isNotNumber(input)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(input) == 1) {
-                    System.out.println("\n중분류를 선택하세요.");
-                    int subCategoryId = createValidSubCategoryId(mainCategoryId);
-                    printStocks(stockDao.findByParentId(con, subCategoryId));
-
-                    //소분류 선택
-                    while (true) {
-                        System.out.println("\n1. 소분류 선택 | 2. 나가기");
-                        input = br.readLine();
-
-                        if (isNotNumber(input)) {
-                            System.out.println("숫자가 아닙니다.");
-                            continue;
-                        }
-                        if (Integer.parseInt(input) == 1) {
-                            System.out.println("\n소분류를 선택하세요.");
-                            printStocks(stockDao.findByParentId(con, createValidSubCategoryId(subCategoryId)));
-                            break Loop;
-                        } else if (Integer.parseInt(input) != 2) {
-                            System.out.println("\n잘못된 번호입니다.");
-                            continue;
-                        }
-                        break Loop;
-                    }
-                } else if (Integer.parseInt(input) == 2) {
-                    break;
-                } else {
-                    System.out.println("잘못된 번호입니다.");
-                }
-            }
+    /**
+     * 카테고리별 재고 조회
+     *
+     * @param categoryId: 카테고리 id
+     * @User: 총 관리자
+     */
+    public void findStocksByParentId(Integer categoryId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            printStocks(stockDao.findByParentId(con, categoryId));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -243,56 +225,6 @@ public class StockService {
             transactionRollback(con);
         } finally {
             connectionClose(con);
-        }
-    }
-
-    /**
-     * 유효한 재고 대분류 카테고리 번호를 입력 받음
-     */
-    private int createValidMainCategoryId() throws IOException {
-        while (true) {
-            List<ProductCategory> categories = productCategoryService.findMainCategories();
-            printCategories(categories);
-            System.out.print("\n번호 입력: ");
-
-            String categoryId = br.readLine();
-
-            if (isNotNumber(categoryId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (categories.stream()
-                    .map(ProductCategory::getId)
-                    .anyMatch(n -> n == Integer.parseInt(categoryId))) {
-                return Integer.parseInt(categoryId);
-            } else {
-                System.out.println("잘못된 입력입니다.");
-            }
-        }
-    }
-
-    /**
-     * 유효한 재고 중, 소분류 카테고리 번호를 입력 받음
-     */
-    private int createValidSubCategoryId(Integer parentId) throws IOException {
-        while (true) {
-            List<ProductCategory> categories = productCategoryService.findSubCategories(parentId);
-            printCategories(categories);
-            System.out.print("\n번호 입력: ");
-
-            String categoryId = br.readLine();
-
-            if (isNotNumber(categoryId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (categories.stream()
-                    .map(ProductCategory::getId)
-                    .anyMatch(n -> n == Integer.parseInt(categoryId))) {
-                return Integer.parseInt(categoryId);
-            } else {
-                System.out.println("잘못된 입력입니다.");
-            }
         }
     }
 
@@ -574,19 +506,6 @@ public class StockService {
                     stock.getManufacturedDate().getHour(), stock.getManufacturedDate().getMinute(), stock.getManufacturedDate().getSecond(),
                     stock.getExpirationDate().getYear(), stock.getExpirationDate().getMonthValue(), stock.getExpirationDate().getDayOfMonth(),
                     stock.getExpirationDate().getHour(), stock.getExpirationDate().getMinute(), stock.getExpirationDate().getSecond());
-        }
-    }
-
-    private void printCategories(List<ProductCategory> categories) {
-        System.out.print("\n\n[분류 선택]\n");
-        System.out.println("-".repeat(50));
-        System.out.printf("%-5s| %-10s\n",
-                "번호", "분류명");
-        System.out.println("-".repeat(50));
-
-        for (ProductCategory category : categories) {
-            System.out.printf("%-10d%-10s\n",
-                    category.getId(), category.getName());
         }
     }
 
