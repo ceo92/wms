@@ -1,7 +1,10 @@
 package service;
 
+import connection.DriverManagerDBConnectionUtil;
 import dao.ExpenseDao;
 import domain.Expense;
+import domain.User;
+import domain.Warehouse;
 import dto.ExpenseEditDto;
 import dto.ExpenseSaveDto;
 import dto.ProfitDto;
