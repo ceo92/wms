@@ -3,12 +3,13 @@ package dao;
 import domain.*;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class WarehouseDao {
-    public boolean save(Connection con, Warehouse warehouse) {
+    public int save(Connection con, Warehouse warehouse) {
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO warehouse(")
                 .append("manager_id, type_id, code, name, region_id, detail_address, contact, max_capacity, price_per_area, reg_date")
@@ -23,9 +24,15 @@ public class WarehouseDao {
             pstmt.setString(7, warehouse.getContact());
             pstmt.setDouble(8, warehouse.getMaxCapacity());
             pstmt.setDouble(9, warehouse.getPricePerArea());
-            pstmt.setObject(10, warehouse.getRegDate());
+            pstmt.setObject(10, java.sql.Timestamp.valueOf(warehouse.getRegDate()));
             int affectedRows = pstmt.executeUpdate();
-            return affectedRows != 0;
+            if(affectedRows == 1) {
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs != null && rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+            throw new SQLException("WarehouseDao.save fail");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -43,7 +50,7 @@ public class WarehouseDao {
                         .manager(User.builder()
                                 .id(rs.getInt("u.id"))
                                 .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_id"))
+                                .loginEmail(rs.getString("u.login_email"))
                                 .roleType(RoleType.valueOf(rs.getString("u.role_type")))
                                 .build()
                         )
@@ -63,8 +70,8 @@ public class WarehouseDao {
                         .contact(rs.getString("w.contact"))
                         .maxCapacity(rs.getDouble("w.max_capacity"))
                         .pricePerArea(rs.getDouble("w.price_per_area"))
-                        .regDate(rs.getTimestamp("w.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("w.mod_date").toLocalDateTime())
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
                         .build();
                 return Optional.of(warehouse);
             } else {
@@ -88,7 +95,7 @@ public class WarehouseDao {
                         .manager(User.builder()
                                 .id(rs.getInt("u.id"))
                                 .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_id"))
+                                .loginEmail(rs.getString("u.login_email"))
                                 .roleType(RoleType.valueOf(rs.getString("u.role_type")))
                                 .build()
                         )
@@ -108,8 +115,8 @@ public class WarehouseDao {
                         .contact(rs.getString("w.contact"))
                         .maxCapacity(rs.getDouble("w.max_capacity"))
                         .pricePerArea(rs.getDouble("w.price_per_area"))
-                        .regDate(rs.getTimestamp("w.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("w.mod_date").toLocalDateTime())
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
                         .build();
                 warehouseList.add(warehouse);
             }
@@ -132,7 +139,7 @@ public class WarehouseDao {
                         .manager(User.builder()
                                 .id(rs.getInt("u.id"))
                                 .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_id"))
+                                .loginEmail(rs.getString("u.login_email"))
                                 .roleType(RoleType.valueOf(rs.getString("u.role_type")))
                                 .build()
                         )
@@ -152,8 +159,8 @@ public class WarehouseDao {
                         .contact(rs.getString("w.contact"))
                         .maxCapacity(rs.getDouble("w.max_capacity"))
                         .pricePerArea(rs.getDouble("w.price_per_area"))
-                        .regDate(rs.getTimestamp("w.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("w.mod_date").toLocalDateTime())
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
                         .build();
                 warehouseList.add(warehouse);
             }
@@ -176,7 +183,7 @@ public class WarehouseDao {
                         .manager(User.builder()
                                 .id(rs.getInt("u.id"))
                                 .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_id"))
+                                .loginEmail(rs.getString("u.login_email"))
                                 .roleType(RoleType.valueOf(rs.getString("u.role_type")))
                                 .build()
                         )
@@ -196,8 +203,8 @@ public class WarehouseDao {
                         .contact(rs.getString("w.contact"))
                         .maxCapacity(rs.getDouble("w.max_capacity"))
                         .pricePerArea(rs.getDouble("w.price_per_area"))
-                        .regDate(rs.getTimestamp("w.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("w.mod_date").toLocalDateTime())
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
                         .build();
                 warehouseList.add(warehouse);
             }
@@ -219,7 +226,7 @@ public class WarehouseDao {
                         .manager(User.builder()
                                 .id(rs.getInt("u.id"))
                                 .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_id"))
+                                .loginEmail(rs.getString("u.login_email"))
                                 .roleType(RoleType.valueOf(rs.getString("u.role_type")))
                                 .build()
                         )
@@ -239,8 +246,8 @@ public class WarehouseDao {
                         .contact(rs.getString("w.contact"))
                         .maxCapacity(rs.getDouble("w.max_capacity"))
                         .pricePerArea(rs.getDouble("w.price_per_area"))
-                        .regDate(rs.getTimestamp("w.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("w.mod_date").toLocalDateTime())
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
                         .build();
                 return Optional.of(warehouse);
             } else {
@@ -264,6 +271,13 @@ public class WarehouseDao {
             throw new RuntimeException(e);
         }
         return types;
+    }
+
+    public LocalDateTime convertToLocalDateTime(Timestamp timestamp) {
+        if(timestamp == null) {
+            return null;
+        }
+        return timestamp.toLocalDateTime();
     }
 
 }

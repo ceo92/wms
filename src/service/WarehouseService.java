@@ -10,24 +10,22 @@ import domain.WarehouseType;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 public class WarehouseService {
 
     private final static WarehouseDao warehouseDao = new WarehouseDao();
     private final static WarehouseContractDao warehouseContractDao = new WarehouseContractDao();
 
-    public void saveWarehouse(Warehouse warehouse) {
+    public int saveWarehouse(Warehouse warehouse) {
         // TODO: warehouse 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
-            boolean result = warehouseDao.save(con, warehouse);
-            if(result) {
-                con.commit();
-            } else {
-                con.rollback();
-            }
+            int id = warehouseDao.save(con, warehouse);
+            con.commit();
+            return id;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);
@@ -183,5 +181,9 @@ public class WarehouseService {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String generateWarehouseCode() {
+        return "WH-" + UUID.randomUUID().toString().substring(0, 7);
     }
 }
