@@ -2,6 +2,7 @@ package dao;
 
 import domain.Expense;
 import domain.ExpenseCategory;
+import domain.Warehouse;
 import dto.ExpenseEditDto;
 import dto.ExpenseSaveDto;
 import dto.ProfitDto;
