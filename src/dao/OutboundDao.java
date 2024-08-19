@@ -19,7 +19,7 @@ public class OutboundDao {
   public void insertOutbound(Outbound outbound) throws SQLException {
     String query = "INSERT INTO outbound (buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity, outbound_type, business_man_id) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query)) {
       ps.setString(1, outbound.getBuyerName());
       ps.setInt(2, outbound.getBuyerRegionId());
@@ -39,7 +39,7 @@ public class OutboundDao {
   // ID로 출고 요청 정보 조회
   public Outbound findOutboundById(int outboundId) throws SQLException {
     String sql = "SELECT * FROM outbound WHERE id = ?";
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, outboundId);
       try (ResultSet rs = ps.executeQuery()) {
@@ -57,7 +57,7 @@ public class OutboundDao {
   // 재고 업데이트 (상품 수량을 증가 또는 감소)
   public void updateStock(String productName, int businessManId, int quantityChange) throws SQLException {
     String sql = "UPDATE stock SET quantity = quantity + ? WHERE product_name = ? AND business_man_id = ?";
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, quantityChange);
       ps.setString(2, productName);
@@ -73,7 +73,7 @@ public class OutboundDao {
   public List<OutboundDto> findNonApprovedOutbounds() throws SQLException {
     String query = "SELECT buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity, outbound_type FROM outbound WHERE outbound_type IN ('WAITINGFORAPPROVAL', 'SHIPMENTDELAYED')";
     List<OutboundDto> outbounds = new ArrayList<>();
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query);
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
@@ -99,7 +99,7 @@ public class OutboundDao {
   public List<OutboundDto> findApprovedOutbounds() throws SQLException {
     String query = "SELECT buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity FROM outbound WHERE outbound_type = 'APPROVED'";
     List<OutboundDto> outbounds = new ArrayList<>();
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query);
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
@@ -124,7 +124,7 @@ public class OutboundDao {
   // 출고 요청 승인 처리
   public void approveOutbound(int outboundId) throws SQLException {
     String query = "UPDATE outbound SET outbound_type = 'APPROVED' WHERE id = ?";
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query)) {
       ps.setInt(1, outboundId);
       ps.executeUpdate();
@@ -137,7 +137,7 @@ public class OutboundDao {
   // 출고 요청 지연 처리
   public void delayOutbound(int outboundId) throws SQLException {
     String query = "UPDATE outbound SET outbound_type = 'SHIPMENTDELAYED' WHERE id = ?";
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query)) {
       ps.setInt(1, outboundId);
       ps.executeUpdate();
@@ -151,7 +151,7 @@ public class OutboundDao {
   public List<OutboundDto> searchApprovedOutbounds(String productName) throws SQLException {
     String query = "SELECT buyer_name, buyer_region_id, buyer_city, buyer_address, product_name, product_quantity FROM outbound WHERE outbound_type = 'APPROVED' AND product_name LIKE ?";
     List<OutboundDto> outbounds = new ArrayList<>();
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query)) {
       ps.setString(1, "%" + productName + "%");
       ResultSet rs = ps.executeQuery();
@@ -182,7 +182,7 @@ public class OutboundDao {
         "JOIN delivery_man dm ON d.delivery_man_id = dm.role_id " +
         "WHERE o.outbound_type = 'APPROVED' AND d.dispatchType = 'ASSIGNED'";
     List<DispatchDto> dispatches = new ArrayList<>();
-    try (Connection conn = HikariCpDBConnectionUtil.getConnection();
+    try (Connection conn = HikariCpDBConnectionUtil.getInstance().getConnection();
         PreparedStatement ps = conn.prepareStatement(query);
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
