@@ -2,7 +2,6 @@ package dao;
 
 import domain.Product;
 import domain.ProductCategory;
-import domain.Vendor;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,7 +31,6 @@ public class ProductDao {
                             .costPrice(rs.getDouble("cost_price"))
                             .manufacturer(rs.getString("manufacturer"))
                             .regDate(rs.getTimestamp("reg_date").toLocalDateTime())
-                            .modDate(rs.getTimestamp("mod_date").toLocalDateTime())
                             .build());
                 } else {
                     return Optional.empty();
