@@ -221,7 +221,6 @@ public class OutboundController {
       int businessManId = Integer.parseInt(br.readLine());
 
       Outbound outbound = new Outbound(buyerName, buyerRegionId, buyerCity, buyerAddress, productName, productQuantity, OutboundType.WAITINGFORAPPROVAL, businessManId);
-      //rs 왜 넣어놨더라...ㅋㅋ
       outboundService.requestOutbound(outbound);
       System.out.println("출고 요청이 성공적으로 등록되었습니다.");
     } catch (IOException | SQLException | NumberFormatException e) {
