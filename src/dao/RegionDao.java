@@ -19,7 +19,7 @@ public class RegionDao {
                         .id(rs.getInt("id"))
                         .name(rs.getString("name"))
                         .code(rs.getString("code"))
-                        .parentId(rs.getInt("parent_id"))
+                        .parentId((Integer) rs.getObject("parent_id"))
                         .build();
                 regions.add(region);
             }
@@ -49,4 +49,5 @@ public class RegionDao {
             throw new RuntimeException(e);
         }
     }
+
 }

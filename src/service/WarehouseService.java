@@ -18,7 +18,6 @@ public class WarehouseService {
     private final static WarehouseContractDao warehouseContractDao = new WarehouseContractDao();
 
     public int saveWarehouse(Warehouse warehouse) {
-        // TODO: warehouse 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -54,7 +53,6 @@ public class WarehouseService {
     }
 
     public Warehouse findWarehouseById(int id) {
-        // TODO: id 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -86,7 +84,6 @@ public class WarehouseService {
     }
 
     public Warehouse findWarehouseByManagerId(int managerId) {
-        // TODO: managerId 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -103,7 +100,6 @@ public class WarehouseService {
     }
 
     public List<Warehouse> searchWarehousesByName(String warehouseName) {
-        // TODO: warehouseName 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -118,8 +114,7 @@ public class WarehouseService {
         }
     }
 
-    public List<Warehouse> searchWarehousesByName(int regionId) {
-        // TODO: regionId 검증
+    public List<Warehouse> searchWarehousesByRegionId(int regionId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -135,12 +130,11 @@ public class WarehouseService {
     }
 
     public List<Warehouse> searchWarehousesByTypeId(int typeId) {
-        // TODO: typeId 검증
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setReadOnly(true);
-            List<Warehouse> warehouseList = warehouseDao.findAllByRegionId(con, typeId);
+            List<Warehouse> warehouseList = warehouseDao.findAllByTypeId(con, typeId);
             con.setReadOnly(false);
             return warehouseList;
         } catch (SQLException e) {
@@ -198,7 +192,7 @@ public class WarehouseService {
         }
     }
 
-    private String generateWarehouseCode() {
+    public String generateWarehouseCode() {
         return "WH-" + UUID.randomUUID().toString().substring(0, 7);
     }
 }
