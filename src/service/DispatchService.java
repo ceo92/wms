@@ -13,7 +13,7 @@ public class DispatchService {
   private final DispatchDao dispatchDao = new DispatchDao();
 
   // 배차등록: 주문자의 지역ID와 배송기사의 지역ID가 같은 경우 배차 상태를 배차할당으로 변경
-  public void registerDispatch() throws SQLException {
+  public void registerDispatch() {
     try {
       List<Dispatch> nonAssignedDispatches = dispatchDao.findNonAssignedDispatches();
       for (Dispatch dispatch : nonAssignedDispatches) {
@@ -24,23 +24,23 @@ public class DispatchService {
       }
     } catch (SQLException e) {
       System.out.println("배차 등록 중 오류가 발생했습니다: " + e.getMessage());
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 
 
   // 배차리스트 조회: 배차할당 상태의 배차 정보를 조회
-  public List<Dispatch> viewAssignedDispatches() throws SQLException {
+  public List<Dispatch> viewAssignedDispatches() {
     try {
       return dispatchDao.findAssignedDispatches();
     } catch (SQLException e) {
       System.out.println("배차 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 
   // 배차정보 수정: 배차를 다른 배송기사로 변경
-  public void modifyDispatch(int dispatchId, DeliveryMan newDeliveryMan) throws SQLException {
+  public void modifyDispatch(int dispatchId, DeliveryMan newDeliveryMan) {
     try {
       Dispatch dispatch = dispatchDao.findAssignedDispatchById(dispatchId);
       if (dispatch != null) {
@@ -49,17 +49,17 @@ public class DispatchService {
       }
     } catch (SQLException e) {
       System.out.println("배차 정보를 수정하는 중 오류가 발생했습니다: " + e.getMessage());
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 
   // 배차 취소: 배차 상태를 배차미할당으로 변경
-  public void cancelDispatch(int dispatchId) throws SQLException {
+  public void cancelDispatch(int dispatchId) {
     try {
       dispatchDao.cancelDispatch(dispatchId);
     } catch (SQLException e) {
       System.out.println("배차를 취소하는 중 오류가 발생했습니다: " + e.getMessage());
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 }
