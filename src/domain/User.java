@@ -1,11 +1,8 @@
 package domain;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -14,6 +11,7 @@ import lombok.Setter;
  */
 // DB와 자바는 매핑 방법이 다르므로
 
+@NoArgsConstructor
 @Getter @Setter(AccessLevel.PROTECTED)
 public class User {
   private Integer id;//PK
@@ -21,25 +19,39 @@ public class User {
   private String phoneNumber; //핸드폰 번호
   private String loginEmail; //로그인 아이디(이메일 형식)
   private String password; //비밀번호 SHA-256
-  private Map<String, String> passwordQuestion = new HashMap<>();
+  private String passwordQuestion;
+  private String passwordAnswer;
   private RoleType roleType; //권한 및 DTYPE
 
 
-  public User(String name, String phoneNumber, String loginEmail, String password, RoleType roleType) {
-    this.name = name;
-    this.phoneNumber = phoneNumber;
-    this.loginEmail = loginEmail;
-    this.password = password;
-    this.roleType = roleType;
-  }
-
-  public User(Integer id, String name, String phoneNumber, String loginEmail, String password,
-      RoleType roleType) {
+  public User(Integer id, String name, String phoneNumber, String loginEmail, String password, RoleType roleType , String passwordQuestion , String passwordAnswer) {
     this.id = id;
     this.name = name;
     this.phoneNumber = phoneNumber;
     this.loginEmail = loginEmail;
     this.password = password;
     this.roleType = roleType;
+    this.passwordQuestion = passwordQuestion;
+    this.passwordAnswer = passwordAnswer;
+  }
+
+
+  public User(String name, String phoneNumber, String loginEmail, String password, RoleType roleType , String passwordQuestion , String passwordAnswer) {
+    this.name = name;
+    this.phoneNumber = phoneNumber;
+    this.loginEmail = loginEmail;
+    this.password = password;
+    this.roleType = roleType;
+    this.passwordQuestion = passwordQuestion;
+    this.passwordAnswer = passwordAnswer;
+  }
+
+  public void changePassword(String password){
+    setPassword(password); //this.password = password
+  }
+
+  public void changeBasicInformation(String name , String phoneNumber){
+    this.name = name;
+    this.phoneNumber = phoneNumber;
   }
 }
