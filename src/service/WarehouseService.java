@@ -70,6 +70,21 @@ public class WarehouseService {
         }
     }
 
+    public List<Warehouse> findAllWarehouses() {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<Warehouse> warehouseList = warehouseDao.findAll(con);
+            con.setReadOnly(false);
+            return warehouseList;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
+
     public Warehouse findWarehouseByManagerId(int managerId) {
         // TODO: managerId 검증
         Connection con = null;

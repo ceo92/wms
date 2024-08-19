@@ -82,6 +82,48 @@ public class WarehouseDao {
         }
     }
 
+    public List<Warehouse> findAll(Connection con) {
+        String sql = "SELECT * FROM warehouse";
+        List<Warehouse> warehouseList = new ArrayList<>();
+        try(Statement stmt = con.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while(rs != null && rs.next()) {
+                Warehouse warehouse = Warehouse.builder()
+                        .id(rs.getInt("w.id"))
+                        .manager(User.builder()
+                                .id(rs.getInt("u.id"))
+                                .phoneNumber(rs.getString("u.phone_number"))
+                                .loginEmail(rs.getString("u.login_email"))
+                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
+                                .build()
+                        )
+                        .type(new WarehouseType(
+                                rs.getInt("wt.id"),
+                                rs.getString("wt.name")
+                        ))
+                        .code(rs.getString("w.code"))
+                        .name(rs.getString("w.name"))
+                        .region(Region.builder()
+                                .id(rs.getInt("r.id"))
+                                .code(rs.getString("r.code"))
+                                .name(rs.getString("r.name"))
+                                .build()
+                        )
+                        .detailAddress(rs.getString("w.detail_address"))
+                        .contact(rs.getString("w.contact"))
+                        .maxCapacity(rs.getDouble("w.max_capacity"))
+                        .pricePerArea(rs.getDouble("w.price_per_area"))
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
+                        .build();
+                warehouseList.add(warehouse);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return warehouseList;
+    }
+
     public List<Warehouse> findAllByName(Connection con, String name) {
         String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
                 + " WHERE w.name LIKE ? AND w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
@@ -279,5 +321,4 @@ public class WarehouseDao {
         }
         return timestamp.toLocalDateTime();
     }
-
 }
