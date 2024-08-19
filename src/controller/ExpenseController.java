@@ -55,8 +55,8 @@ public class ExpenseController {
                                                     }
                                                     default -> System.out.println("잘못된 접근입니다.");
                                                 }
-                                            } catch (IOException | NumberFormatException e) {
-                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                            } catch (IllegalArgumentException e) {
+                                                System.out.println("숫자를 입력하십시오.\n");
                                             }
                                         }
                                     }
@@ -96,11 +96,11 @@ public class ExpenseController {
                                     }
                                     default -> System.out.println("잘못된 접근입니다.");
                                 }
-                            } catch (IOException | NumberFormatException e) {
-                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("숫자를 입력하십시오.\n");
                             }
-                        } catch (IOException | NumberFormatException e) {
-                            System.out.println("오류가 발생했습니다: " + e.getMessage());
+                        } catch (IllegalArgumentException | IOException e) {
+                            System.out.println("숫자를 입력하십시오.\n");
                         }
                     }
                 }
@@ -133,8 +133,8 @@ public class ExpenseController {
                                                     }
                                                     default -> System.out.println("잘못된 접근입니다.");
                                                 }
-                                            } catch (IOException | NumberFormatException e) {
-                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                            } catch (IllegalArgumentException e) {
+                                                System.out.println("숫자를 입력하십시오.\n");
                                             }
                                         }
                                     }
@@ -172,11 +172,11 @@ public class ExpenseController {
                                     }
                                     default -> System.out.println("잘못된 접근입니다.");
                                 }
-                            } catch (IOException | NumberFormatException e) {
-                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("숫자를 입력하십시오.\n");
                             }
-                        } catch (IOException | NumberFormatException e) {
-                            System.out.println("오류가 발생했습니다: " + e.getMessage());
+                        } catch (IllegalArgumentException | IOException e) {
+                            System.out.println("숫자를 입력하십시오.\n");
                         }
                     }
                 }
@@ -191,21 +191,20 @@ public class ExpenseController {
      */
     private int findValidExpenseId(List<Expense> expenses) throws IOException {
         while (true) {
-            System.out.println("\n지출 내역의 번호를 선택하세요.\n");
-            System.out.print("번호 입력: ");
-            String expenseId = br.readLine();
+            try {
+                System.out.println("\n지출 내역의 번호를 선택하세요.\n");
+                System.out.print("번호 입력: ");
+                String expenseId = br.readLine();
 
-            if (isNotNumber(expenseId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-
-            if (expenses.stream()
-                    .map(Expense::getId)
-                    .anyMatch(n -> n == Integer.parseInt(expenseId))) {
-                return Integer.parseInt(expenseId);
-            } else {
-                System.out.println("\n조회할 수 없는 지출 건입니다.\n");
+                if (expenses.stream()
+                        .map(Expense::getId)
+                        .anyMatch(n -> n == Integer.parseInt(expenseId))) {
+                    return Integer.parseInt(expenseId);
+                } else {
+                    System.out.println("\n조회할 수 없는 지출 건입니다.\n");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
     }
@@ -218,23 +217,22 @@ public class ExpenseController {
      */
     private static int createValidWarehouseId() throws IOException {
         while (true) {
-            List<Warehouse> warehouses = warehouseService.findAllWarehouses();
-            printWarehouses(warehouses);
-            System.out.println("\n창고를 선택하세요.\n");
-            System.out.print("창고 번호: ");
-            String warehouseId = br.readLine();
+            try {
+                List<Warehouse> warehouses = warehouseService.findAllWarehouses();
+                printWarehouses(warehouses);
+                System.out.println("\n창고를 선택하세요.\n");
+                System.out.print("창고 번호: ");
+                String warehouseId = br.readLine();
 
-            if (isNotNumber(warehouseId)) {
-                System.out.println("숫자가 아닙니다.\n");
-                continue;
-            }
-
-            if (warehouses.stream()
-                    .map(Warehouse::getId)
-                    .anyMatch(n -> n == Integer.parseInt(warehouseId))) {
-                return Integer.parseInt(warehouseId);
-            } else {
-                System.out.println("찾을 수 없는 창고입니다.");
+                if (warehouses.stream()
+                        .map(Warehouse::getId)
+                        .anyMatch(n -> n == Integer.parseInt(warehouseId))) {
+                    return Integer.parseInt(warehouseId);
+                } else {
+                    System.out.println("찾을 수 없는 창고입니다.");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.");
             }
         }
     }
@@ -250,68 +248,52 @@ public class ExpenseController {
         String day;
 
         while (true) {
-            System.out.println("\n지출일을 입력합니다.\n");
-            System.out.print("연도 입력 (2023~2024): ");
-            year = br.readLine();
+            try {
+                System.out.println("\n지출일을 입력합니다.\n");
+                System.out.print("연도 입력 (2023~2024): ");
+                year = br.readLine();
 
-            if (isNotNumber(year)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Integer.parseInt(year) != 2023 && Integer.parseInt(year) != 2024) {
+                    System.out.println("\n잘못된 연도 입니다.\n");
+                    continue;
+                }
+
+                System.out.print("월 입력 (1~12): ");
+                month = br.readLine();
+
+                if (Integer.parseInt(month) < 1 || Integer.parseInt(month) > 12) {
+                    System.out.println("\n잘못된 월입니다.\n");
+                    continue;
+                } else if (Integer.parseInt(month) == 2) {
+                    System.out.print("일 입력 (1~28): ");
+                    day = br.readLine();
+
+                    if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 28) {
+                        System.out.println("\n잘못된 일입니다.\n");
+                        continue;
+                    }
+                } else if (Integer.parseInt(month) == 1 || Integer.parseInt(month) == 3 || Integer.parseInt(month) == 5 ||
+                        Integer.parseInt(month) == 7 || Integer.parseInt(month) == 8 || Integer.parseInt(month) == 10 || Integer.parseInt(month) == 12) {
+                    System.out.print("일 입력 (1~31): ");
+                    day = br.readLine();
+
+                    if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 31) {
+                        System.out.println("\n잘못된 일입니다.\n");
+                        continue;
+                    }
+                } else {
+                    System.out.print("일 입력 (1~31): ");
+                    day = br.readLine();
+
+                    if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 30) {
+                        System.out.println("\n잘못된 일입니다.\n");
+                        continue;
+                    }
+                }
+                return LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            if (Integer.parseInt(year) != 2023 && Integer.parseInt(year) != 2024) {
-                System.out.println("\n잘못된 연도 입니다.\n");
-                continue;
-            }
-
-            System.out.print("월 입력 (1~12): ");
-            month = br.readLine();
-
-            if (isNotNumber(month)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (Integer.parseInt(month) < 1 || Integer.parseInt(month) > 12) {
-                System.out.println("\n잘못된 월입니다.\n");
-                continue;
-            } else if (Integer.parseInt(month) == 2) {
-                System.out.print("일 입력 (1~28): ");
-                day = br.readLine();
-
-                if (isNotNumber(day)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 28) {
-                    System.out.println("\n잘못된 일입니다.\n");
-                    continue;
-                }
-            } else if (Integer.parseInt(month) == 1 || Integer.parseInt(month) == 3 || Integer.parseInt(month) == 5 ||
-                    Integer.parseInt(month) == 7 || Integer.parseInt(month) == 8 || Integer.parseInt(month) == 10 || Integer.parseInt(month) == 12) {
-                System.out.print("일 입력 (1~31): ");
-                day = br.readLine();
-
-                if (isNotNumber(day)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 31) {
-                    System.out.println("\n잘못된 일입니다.\n");
-                    continue;
-                }
-            } else {
-                System.out.print("일 입력 (1~31): ");
-                day = br.readLine();
-
-                if (isNotNumber(day)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 30) {
-                    System.out.println("\n잘못된 일입니다.\n");
-                    continue;
-                }
-            }
-            return LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
         }
     }
 
@@ -321,22 +303,22 @@ public class ExpenseController {
      * @return 지출 구분 카테고리 번호
      */
     private static int createValidCategoryId() throws IOException {
-        String categoryId;
+        String categoryId = "";
 
         while (true) {
-            System.out.println("\n지출 구분을 선택하세요.\n");
-            System.out.println("1. 유지보수비 | 2. 인건비 | 3. 운송비");
-            categoryId = br.readLine();
+            try {
+                System.out.println("\n지출 구분을 선택하세요.\n");
+                System.out.println("1. 유지보수비 | 2. 인건비 | 3. 운송비");
 
-            if (isNotNumber(categoryId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Integer.parseInt(categoryId) < 1 || Integer.parseInt(categoryId) > 3) {
+                    System.out.println("\n다시 압력해주세요.\n");
+                    continue;
+                }
+                categoryId = br.readLine();
+                return Integer.parseInt(categoryId);
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오. ");
             }
-            if (Integer.parseInt(categoryId) < 1 || Integer.parseInt(categoryId) > 3) {
-                System.out.println("\n다시 선택해주세요.\n");
-                continue;
-            }
-            return Integer.parseInt(categoryId);
         }
     }
 
@@ -350,18 +332,20 @@ public class ExpenseController {
         String amount;
 
         while (true) {
-            System.out.println("\n가격을 입력하세요.\n");
-            amount = br.readLine();
+            try {
+                System.out.print("\n가격을 입력하세요. ");
+                amount = br.readLine();
 
-            if (isNotNumber(amount)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Double.parseDouble(amount) < 0) {
+                    System.out.println("\n0원 이하는 입력할 수 없습니다.\n");
+                    continue;
+                }
+
+                return Double.parseDouble(amount);
+
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오. ");
             }
-            if (Double.parseDouble(amount) < 0) {
-                System.out.println("\n0원 이하는 입력할 수 없습니다.\n");
-                continue;
-            }
-            return Double.parseDouble(amount);
         }
     }
 
@@ -374,19 +358,19 @@ public class ExpenseController {
         String description;
 
         while (true) {
-            System.out.println("\n지출에 대한 설명을 입력하시겠습니까?\n");
-            System.out.println("1. 예 | 2. 아니오");
-            description = br.readLine();
+            try {
+                System.out.println("\n지출에 대한 설명을 입력하시겠습니까?");
+                System.out.print("1. 예 | 2. 아니오 ");
+                description = br.readLine();
 
-            if (isNotNumber(description)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (Integer.parseInt(description) == 2) {
-                return "";
-            } else if (Integer.parseInt(description) == 1) {
-                System.out.println("\n지출에 대한 설명을 입력해주세요.\n");
-                return br.readLine();
+                if (Integer.parseInt(description) == 2) {
+                    return "";
+                } else if (Integer.parseInt(description) == 1) {
+                    System.out.print("지출에 대한 설명을 입력해주세요. ");
+                    return br.readLine();
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
     }
@@ -400,19 +384,18 @@ public class ExpenseController {
         String paymentMethod;
 
         while (true) {
-            System.out.println("\n지출 방법을 선택해세요.\n");
-            System.out.println("1. 카드 | 2. 계좌이체");
-            paymentMethod = br.readLine();
+            try {
+                System.out.println("\n지출 방법을 선택해세요.");
+                System.out.print("1. 카드 | 2. 계좌이체 ");
+                paymentMethod = br.readLine();
 
-            if (isNotNumber(paymentMethod)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-
-            if (Integer.parseInt(paymentMethod) == 1) {
-                return "카드";
-            } else if (Integer.parseInt(paymentMethod) == 2) {
-                return "계좌이체";
+                if (Integer.parseInt(paymentMethod) == 1) {
+                    return "카드";
+                } else if (Integer.parseInt(paymentMethod) == 2) {
+                    return "계좌이체";
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
     }
@@ -427,28 +410,19 @@ public class ExpenseController {
         String year;
 
         while (true) {
-            System.out.println("\n조회할 연도를 입력하세요.\n");
-            System.out.print("연도: ");
-            year = br.readLine();
+            try {
+                System.out.print("\n조회할 연도를 입력하세요. (2023~2024년): \n");
+                year = br.readLine();
 
-            if (isNotNumber(year)) {
-                System.out.println("숫자가 아닙니다.\n");
-                continue;
-            }
-            if (Integer.parseInt(year) >= 2023 && Integer.parseInt(year) <= 2024) {
-                return Integer.parseInt(year);
-            } else {
-                System.out.println("\n조회할 수 없는 숫자입니다.\n");
+                if (Integer.parseInt(year) >= 2023 && Integer.parseInt(year) <= 2024) {
+                    return Integer.parseInt(year);
+                } else {
+                    System.out.println("\n조회할 수 없는 숫자입니다.\n");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
-    }
-
-
-    /**
-     * 숫자를 입력 받을 때 문자, 공백, 특수문자가 포함되어 있는지 확인함
-     */
-    private static boolean isNotNumber(String input) {
-        return !input.matches("^[0-9]+$");
     }
 
     private void printExpenses(List<Expense> expenses) {
