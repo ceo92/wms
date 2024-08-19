@@ -6,6 +6,8 @@ import dao.InboundItemDao;
 import dao.StockDao;
 import dao.StockSectionDao;
 import domain.*;
+import dto.InboundDto;
+import dto.InboundItemDto;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -27,16 +29,17 @@ public class InboundService {
     /**
      * 입고, 입고 품목 등록
      *
-     * @param inbound
-     * @param items
+     * @param inboundDto
+     * @param itemDtoList
      */
-    public void saveInbound(Inbound inbound, List<InboundItem> items) {
+    public void saveInbound(InboundDto inboundDto, List<InboundItemDto> itemDtoList) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
+            Inbound inbound = inboundDto.toCreateInbound();
             int inboundId = inboundDao.save(con, inbound);
-            boolean result = inboundItemDao.saveInboundItems(con, inboundId, items);
+            boolean result = inboundItemDao.saveInboundItems(con, inboundId, itemDtoList);
             if(result) {
                 con.commit();
             } else {
@@ -69,7 +72,6 @@ public class InboundService {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     /**
@@ -158,22 +160,62 @@ public class InboundService {
     }
 
     /**
-     * 입고 품목 수정
+     * 입고 품목 수량 변경
      */
-    public void updateInboundItems() {
-
+    public void updateItemRequestQuantity(int itemId, int quantity) {
+        // TODO: itemId, quantity 검증
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            boolean updateResult = inboundItemDao.updateRequestQuantity(con, itemId, quantity);
+            if(updateResult) {
+                con.commit();
+            } else {
+                con.rollback();
+                throw new RuntimeException("입고 품목 수량 변경에 실패했습니다.");
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
     }
 
+    /**
+     * 입고 품목 삭제
+     *
+     * @param itemId
+     */
+    public void deleteInboundItem(int itemId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setAutoCommit(false);
+            boolean updateResult = inboundItemDao.deleteInboundItem(con, itemId);
+            if(updateResult) {
+                con.commit();
+            } else {
+                con.rollback();
+                throw new RuntimeException("입고 품목 삭제를 실패했습니다.");
+            }
+        } catch (SQLException e) {
+            transactionRollback(con);
+            throw new RuntimeException(e);
+        } finally {
+            connectionClose(con);
+        }
+    }
 
     /**
      * 입고 처리
+     * 1. 재고 추가
+     * 2. 입고 품목에 완료 수량 업데이트
+     *
      * @param itemId 입고 처리할 품목
      * @param stock 등록할 재고 정보
      */
-    // 입고 처리
-    // 1. 재고 추가
-    // 2. 입고 품목에 완료 수량 업데이트
-    // 3. 입고 건에 대해 모든 품목이 입고 완료되었다면 상태 변경
     public void confirmInbound(int itemId, Stock stock) {
         Connection con = null;
         try {
@@ -193,7 +235,6 @@ public class InboundService {
 
     }
 
-
     /**
      * 입고 위치 지정
      *
@@ -201,29 +242,27 @@ public class InboundService {
      * @param stockId
      * @return
      */
-    // 재고 별 창고 내 입고 위치 지정
-    public boolean assignInboundSection(int warehouseId, int stockId) {
-        // TODO: stock 검증
+    public void assignInboundSection(int warehouseId, int stockId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
-            InboundItem item = inboundItemDao.findInboundItem(con, itemId).orElseThrow(
-                    () -> new RuntimeException("존재하지 않는 입고 품목입니다."));
-
-            // 1. 해당 제품이 저장된 기존 구역에 적재 (하나의 구역에는 한 종류의 제품만 적재 가능)
-            List<StockSection> sections = stockSectionDao.findByWarehouseIdAndProductId(con, warehouseId, item.getProduct().getId());
+            Stock stock = stockDao.findById(con, stockId)
+                    .orElseThrow(() -> new RuntimeException("존재하지 않는 재고입니다."));
+            int quantity = stock.getQuantity();
+            if(quantity <= 0) {
+                throw new RuntimeException("재고의 개수가 0 이하입니다.");
+            }
+            // 1. 해당 제품(product)이 저장된 기존 구역에 적재 (한 구역에는 한 종류의 제품만 적재)
+            List<StockSection> sections = stockSectionDao.findAllByWarehouseIdAndProductId(con, warehouseId, stock.getProduct().getId());
             for(StockSection section: sections) {
-                double sectionArea = section.getWidth() * section.getHeight();
-                double stockSize = section.getStock().getWidth() * section.getStock().getHeight();
-                double availableSectionArea =  sectionArea - stockSize * section.getQuantity();
-                int maxLoadableQuantity = (int)(availableSectionArea / stockSize);
+                int maxLoadableQuantity = getMaxLoadableQuantity(section);
                 if(maxLoadableQuantity > 0) {
-                    int loadQuantity = Math.min(stock.getQuantity(), maxLoadableQuantity);
+                    int loadQuantity = Math.min(quantity, maxLoadableQuantity);
                     stockSectionDao.updateQuantity(con, section.getId(), section.getQuantity() + loadQuantity);
                     quantity -= loadQuantity;
                 }
-                if(quantity == 0) {
+                if(quantity <= 0) {
                     break;
                 }
             }
@@ -231,12 +270,13 @@ public class InboundService {
             while(quantity > 0) {
                 StockSection section = stockSectionDao.findEmptySection(con, warehouseId)
                         .orElseThrow(() -> new RuntimeException("창고에 재고를 적재할 구역이 없습니다."));
-
-                stockSectionDao.updateStockIdAndQuantity(con, stockid, quantity);
+                int maxLoadableQuantity = getMaxLoadableQuantity(section);
+                if(maxLoadableQuantity > 0) {
+                    int loadQuantity = Math.min(quantity, maxLoadableQuantity);
+                    stockSectionDao.updateStockIdAndQuantity(con, section.getId(), stock.getId(), quantity);
+                    quantity -= loadQuantity;
+                }
             }
-            // 3. 품목 수량 업데이트
-            boolean result = inboundItemDao.updateCompletedQuantity(con, item.getId(), item.getCompleteQuantity() + quantity);
-
             con.commit();
         } catch (SQLException e) {
             transactionRollback(con);
@@ -248,6 +288,7 @@ public class InboundService {
 
     /**
      * 입고 품목 조회
+     *
      * @param inboundId
      * @return
      */
@@ -302,33 +343,47 @@ public class InboundService {
         return sb.toString();
     }
 
-
     /**
      * 입고 승인
      *
      * @param id 입고 id
      */
-    // 재고에 입고 요청한 건 추가
     public void approvalInbound(int id) {
-        Inbound inbound = findInboundById(id);
-        if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
-            throw new RuntimeException("입고 예정 건만 승인 처리 가능합니다.");
+        try (Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection()) {
+            Inbound inbound = inboundDao.findById(con, id).orElseThrow(
+                    () -> new RuntimeException("존재하지 않는 입고 요청입니다."));;
+            if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
+                throw new RuntimeException("입고 예정 건만 승인 처리 가능합니다.");
+            } else {
+                updateInboundStatus(con, id, InboundStatus.APPROVED);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        updateInboundStatus(id, InboundStatus.APPROVED);
-        // 재고 테이블에 품목 추가
     }
 
     /**
      * 입고 완료
+     * 1. 상태가 입고 대기(APPROVED)
+     * 2. 입고 건에 대해 모든 품목이 입고 완료 됨
      *
      * @param id 입고 id
      */
     public void completeInbound(int id) {
-        Inbound inbound = findInboundById(id);
-        if(!InboundStatus.APPROVED.equals(inbound.getStatus())) {
-            throw new RuntimeException("입고 대기 건만 입고 처리 가능합니다.");
+        try(Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection()) {
+            Inbound inbound = inboundDao.findById(con, id).orElseThrow(
+                    () -> new RuntimeException("존재하지 않는 입고 요청입니다."));
+            if(!InboundStatus.APPROVED.equals(inbound.getStatus())) {
+                throw new RuntimeException("입고 대기 건만 입고 처리 가능합니다.");
+            } else if(!inboundItemDao.checkInboundCompleted(con, id)) {
+                throw new RuntimeException("아직 입고 완료되지 않은 품목이 존재합니다.");
+            } else {
+                updateInboundStatus(con, id, InboundStatus.COMPLETED);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        updateInboundStatus(id, InboundStatus.COMPLETED);
+
     }
 
     /**
@@ -337,11 +392,17 @@ public class InboundService {
      * @param id 입고 id
      */
     public void cancelInbound(int id) {
-        Inbound inbound = findInboundById(id);
-        if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
-            throw new RuntimeException("입고 예정인 건만 취소 가능합니다.");
+        try(Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection()) {
+            Inbound inbound = inboundDao.findById(con, id).orElseThrow(
+                    () -> new RuntimeException("존재하지 않는 입고 요청입니다."));
+            if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
+                throw new RuntimeException("입고 예정인 건만 취소 가능합니다.");
+            } else {
+                updateInboundStatus(con, id, InboundStatus.CANCEL);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        updateInboundStatus(id, InboundStatus.CANCEL);
     }
 
     /**
@@ -350,10 +411,8 @@ public class InboundService {
      * @param id 입고 id
      * @param status 변경할 입고 상태
      */
-    private void updateInboundStatus(int id, InboundStatus status) {
-        Connection con = null;
+    private void updateInboundStatus(Connection con, int id, InboundStatus status) {
         try {
-            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
             boolean result = inboundDao.updateStatus(con, id, status);
             if(result) {
@@ -368,6 +427,19 @@ public class InboundService {
         } finally {
             connectionClose(con);
         }
+    }
+
+    /**
+     * 재고 구역 내에 적재 가능한 재고의 개수를 계산
+     *
+     * @param section
+     * @return
+     */
+    private int getMaxLoadableQuantity(StockSection section) {
+        double sectionArea = section.getWidth() * section.getHeight(); // 구역 면적
+        double stockSize = section.getStock().getWidth() * section.getStock().getHeight(); // 적재할 재고 사이즈
+        double availableSectionArea = sectionArea - stockSize * section.getQuantity(); // 적재 가능한 구역 내 면적
+        return (int)(availableSectionArea / stockSize);
     }
 
     /**
