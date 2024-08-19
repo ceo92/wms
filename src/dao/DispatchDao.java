@@ -79,7 +79,7 @@ public class DispatchDao {
     try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setString(1, dispatch.getDispatchType().name());
-      pstmt.setInt(2, dispatch.getDelivery_man().getId());
+      pstmt.setInt(2, dispatch.getDeliveryMan().getId());
       pstmt.setInt(3, dispatch.getId());
       pstmt.executeUpdate();
     } catch (SQLException e) {
@@ -126,4 +126,37 @@ public class DispatchDao {
     dispatch.setId(rs.getInt("id"));  // Dispatch ID 매핑
     return dispatch;
   }
+
+  //v3 메서드
+//  private Dispatch mapDispatch(ResultSet rs) throws SQLException {
+//    // Outbound 객체 초기화
+//    Outbound outbound = new Outbound(
+//        rs.getInt("outbound_id"),  // Outbound ID
+//        rs.getString("buyer_name"),  // 구매자 이름
+//        rs.getInt("buyer_region_id"),  // 구매자 지역 ID
+//        rs.getString("buyer_city"),  // 구매자 도시
+//        rs.getString("buyer_address"),  // 구매자 상세 주소
+//        rs.getString("product_name"),  // 상품명
+//        rs.getInt("product_quantity"),  // 수량
+//        OutboundType.valueOf(rs.getString("outbound_type")),  // 출고 상태
+//        rs.getInt("business_man_id")  // 사업자 ID
+//    );
+//
+//    // DeliveryMan 객체 초기화
+//    DeliveryMan deliveryMan = new DeliveryMan();
+//    deliveryMan.setId(rs.getInt("delivery_man_id"));  // 배송기사 ID 설정
+//    deliveryMan.setDeliveryManNum(rs.getString("delivery_man_num"));  // 배송기사 번호 설정
+//    deliveryMan.setCarNum(rs.getString("car_num"));  // 차량 번호 설정
+//
+//    // Dispatch 객체 초기화
+//    Dispatch dispatch = new Dispatch(
+//        outbound,
+//        deliveryMan,
+//        DispatchType.valueOf(rs.getString("dispatchType"))  // 배차 상태
+//    );
+//    dispatch.setId(rs.getInt("id"));  // Dispatch ID 매핑
+//
+//    return dispatch;
+//  }
+
 }

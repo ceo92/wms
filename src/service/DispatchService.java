@@ -17,7 +17,7 @@ public class DispatchService {
     try {
       List<Dispatch> nonAssignedDispatches = dispatchDao.findNonAssignedDispatches();
       for (Dispatch dispatch : nonAssignedDispatches) {
-        if (dispatch.getOutbound().getBuyerRegionId().equals(dispatch.getDelivery_man().getRegion_id())) {
+        if (dispatch.getOutbound().getBuyerRegionId().equals(dispatch.getDeliveryMan().getRegion().getId())) {
           dispatch.setDispatchType(DispatchType.ASSIGNED);
           dispatchDao.updateDispatch(dispatch);
         }
@@ -44,7 +44,7 @@ public class DispatchService {
     try {
       Dispatch dispatch = dispatchDao.findAssignedDispatchById(dispatchId);
       if (dispatch != null) {
-        dispatch.setDelivery_man(newDeliveryMan);
+        dispatch.setDeliveryMan(newDeliveryMan);
         dispatchDao.updateDispatch(dispatch);
       }
     } catch (SQLException e) {

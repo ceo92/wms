@@ -6,12 +6,12 @@ import lombok.Data;
 public class Dispatch {
   private Integer id;
   private Outbound outbound;
-  private DeliveryMan delivery_man;
+  private DeliveryMan deliveryMan;
   private DispatchType dispatchType;
 
   public Dispatch(Outbound outbound, DeliveryMan delivery_man, DispatchType dispatchType) {
     this.outbound = outbound;
-    this.delivery_man = delivery_man;
+    this.deliveryMan = delivery_man;
     this.dispatchType = dispatchType;
   }
 
