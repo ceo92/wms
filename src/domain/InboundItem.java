@@ -1,8 +1,10 @@
 package domain;
 
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class InboundItem {
 
     private Integer id;
