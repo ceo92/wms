@@ -1,5 +1,6 @@
 package dao;
 
+import connection.HikariCpDBConnectionUtil;
 import domain.Waybill;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +14,7 @@ public class WaybillDao {
   // 운송장 생성 (새로운 운송장 추가)
   public void createWaybill(Waybill waybill) throws SQLException {
     String sql = "INSERT INTO waybill (dispatch_id) VALUES (?)";
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setInt(1, waybill.getDispatchId());
       pstmt.executeUpdate();
@@ -27,7 +28,7 @@ public class WaybillDao {
   public List<Waybill> findAllWaybills() throws SQLException {
     String sql = "SELECT * FROM waybill";
     List<Waybill> waybills = new ArrayList<>();
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
@@ -44,7 +45,7 @@ public class WaybillDao {
   // ID로 운송장 정보 조회
   public Waybill findWaybillById(int waybillId) throws SQLException {
     String sql = "SELECT * FROM waybill WHERE id = ?";
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setInt(1, waybillId);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -62,7 +63,7 @@ public class WaybillDao {
   // 운송장 정보 업데이트 (운송장에 연결된 배차 정보 변경)
   public void updateWaybill(Waybill waybill) throws SQLException {
     String sql = "UPDATE waybill SET dispatch_id = ? WHERE id = ?";
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setInt(1, waybill.getDispatchId());
       pstmt.setInt(2, waybill.getId());

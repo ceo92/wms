@@ -1,5 +1,6 @@
 package dto.savedto;
 
+import domain.Region;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -12,6 +13,9 @@ public class DeliveryManSaveDto {
   private String loginEmail; //로그인 아이디(이메일 형식)
   private String password; //비밀번호 SHA-256
   private String rePassword; //비밀번호 한번 더
+  private String passwordQuestion;
+  private String passwordAnswer;
   private String deliveryManNum; //배송기사번호
   private String carNum;
+  private Region region;
 }

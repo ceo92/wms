@@ -3,7 +3,6 @@ package service;
 import connection.DriverManagerDBConnectionUtil;
 import dao.RegionDao;
 import domain.Region;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
