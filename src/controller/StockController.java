@@ -43,7 +43,7 @@ public class StockController {
                                         printStocks(stockService.findAllStocks());
 
                                         while (true) {
-                                            System.out.println("1. 카테고리별 재고 조회 | 2. 이전으로");
+                                            System.out.println("\n1. 카테고리별 재고 조회 | 2. 이전으로");
                                             input = Integer.parseInt(br.readLine());
 
                                             try {
@@ -57,7 +57,7 @@ public class StockController {
                                                         printStocks(stockService.findStocksByParentId(mainCategoryId));
 
                                                         while (true) {
-                                                            System.out.println("1. 중분류 선택 | 2. 이전으로");
+                                                            System.out.println("\n1. 중분류 선택 | 2. 이전으로");
                                                             input = Integer.parseInt(br.readLine());
 
                                                             try {
@@ -68,7 +68,7 @@ public class StockController {
                                                                         printStocks(stockService.findStocksByParentId(subCategoryId));
 
                                                                         while (true) {
-                                                                            System.out.println("1. 소분류 선택 | 2. 이전으로");
+                                                                            System.out.println("\n1. 소분류 선택 | 2. 이전으로");
                                                                             input = Integer.parseInt(br.readLine());
 
                                                                             try {
@@ -83,10 +83,10 @@ public class StockController {
                                                                                     case 2 -> {
                                                                                         break Loop;
                                                                                     }
-                                                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                                                 }
-                                                                            } catch (IOException | NumberFormatException e) {
-                                                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                                                            } catch (IllegalArgumentException e) {
+                                                                                System.out.println("숫자를 입력하십시오.\n");
                                                                             }
                                                                         }
                                                                     }
@@ -94,11 +94,10 @@ public class StockController {
                                                                     case 2 -> {
                                                                         break Loop;
                                                                     }
-
-                                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                                 }
-                                                            } catch (IOException | NumberFormatException e) {
-                                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                                            } catch (IllegalArgumentException e) {
+                                                                System.out.println("숫자를 입력하십시오.\n");
                                                             }
                                                         }
                                                     }
@@ -106,10 +105,10 @@ public class StockController {
                                                     case 2 -> {
                                                         break Loop;
                                                     }
-                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                 }
-                                            } catch (IOException | NumberFormatException e) {
-                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                            } catch (IllegalArgumentException e) {
+                                                System.out.println("숫자를 입력하십시오.\n");
                                             }
                                         }
                                     }
@@ -154,13 +153,13 @@ public class StockController {
                                         return;
                                     }
 
-                                    default -> System.out.println("잘못된 접근입니다.\n");
+                                    default -> System.out.println("\n잘못된 접근입니다.");
                                 }
-                            } catch (IOException | NumberFormatException e) {
-                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("숫자를 입력하십시오.\n");
                             }
-                        } catch (IOException | NumberFormatException e) {
-                            System.out.println("오류가 발생했습니다: " + e.getMessage());
+                        } catch (IllegalArgumentException | IOException e) {
+                            System.out.println("숫자를 입력하십시오.\n");
                         }
                     }
                 }
@@ -178,7 +177,7 @@ public class StockController {
                                         printStocks(stockService.findAllStocksByManagerId(user.getId()));
 
                                         while (true) {
-                                            System.out.println("1. 카테고리별 재고 조회 | 2. 이전으로");
+                                            System.out.println("\n1. 카테고리별 재고 조회 | 2. 이전으로");
                                             input = Integer.parseInt(br.readLine());
 
                                             try {
@@ -192,7 +191,7 @@ public class StockController {
                                                         printStocks(stockService.findStocksByParentIdAndManagerId(user.getId(), mainCategoryId));
 
                                                         while (true) {
-                                                            System.out.println("1. 중분류 선택 | 2. 이전으로");
+                                                            System.out.println("\n1. 중분류 선택 | 2. 이전으로");
                                                             input = Integer.parseInt(br.readLine());
 
                                                             try {
@@ -203,7 +202,7 @@ public class StockController {
                                                                         printStocks(stockService.findStocksByParentIdAndManagerId(user.getId(), subCategoryId));
 
                                                                         while (true) {
-                                                                            System.out.println("1. 소분류 선택 | 2. 이전으로");
+                                                                            System.out.println("\n1. 소분류 선택 | 2. 이전으로");
                                                                             input = Integer.parseInt(br.readLine());
 
                                                                             try {
@@ -218,10 +217,10 @@ public class StockController {
                                                                                     case 2 -> {
                                                                                         break Loop;
                                                                                     }
-                                                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                                                 }
-                                                                            } catch (IOException | NumberFormatException e) {
-                                                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                                                            } catch (IllegalArgumentException e) {
+                                                                                System.out.println("숫자를 입력하십시오.\n");
                                                                             }
                                                                         }
                                                                     }
@@ -230,10 +229,10 @@ public class StockController {
                                                                         break Loop;
                                                                     }
 
-                                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                                 }
-                                                            } catch (IOException | NumberFormatException e) {
-                                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                                            } catch (IllegalArgumentException e) {
+                                                                System.out.println("숫자를 입력하십시오.\n");
                                                             }
                                                         }
                                                     }
@@ -241,10 +240,10 @@ public class StockController {
                                                     case 2 -> {
                                                         break Loop;
                                                     }
-                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                 }
-                                            } catch (IOException | NumberFormatException e) {
-                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                            } catch (IllegalArgumentException e) {
+                                                System.out.println("숫자를 입력하십시오.\n");
                                             }
                                         }
                                     }
@@ -288,13 +287,13 @@ public class StockController {
                                     case 6 -> {
                                         return;
                                     }
-                                    default -> System.out.println("잘못된 접근입니다.\n");
+                                    default -> System.out.println("\n잘못된 접근입니다.");
                                 }
-                            } catch (IOException | NumberFormatException e) {
-                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("숫자를 입력하십시오.\n");
                             }
-                        } catch (IOException | NumberFormatException e) {
-                            System.out.println("오류가 발생했습니다: " + e.getMessage());
+                        } catch (IllegalArgumentException | IOException e) {
+                            System.out.println("숫자를 입력하십시오.\n");
                         }
                     }
                 }
@@ -312,7 +311,7 @@ public class StockController {
                                         printStocks(stockService.findAllStocksByBusinessManId(user.getId()));
 
                                         while (true) {
-                                            System.out.println("1. 카테고리별 재고 조회 | 2. 이전으로");
+                                            System.out.println("\n1. 카테고리별 재고 조회 | 2. 이전으로");
                                             input = Integer.parseInt(br.readLine());
 
                                             try {
@@ -326,7 +325,7 @@ public class StockController {
                                                         printStocks(stockService.findStocksByParentIdAndBusinessManId(user.getId(), mainCategoryId));
 
                                                         while (true) {
-                                                            System.out.println("1. 중분류 선택 | 2. 이전으로");
+                                                            System.out.println("\n1. 중분류 선택 | 2. 이전으로");
                                                             input = Integer.parseInt(br.readLine());
 
                                                             try {
@@ -337,7 +336,7 @@ public class StockController {
                                                                         printStocks(stockService.findStocksByParentIdAndBusinessManId(user.getId(), subCategoryId));
 
                                                                         while (true) {
-                                                                            System.out.println("1. 소분류 선택 | 2. 이전으로");
+                                                                            System.out.println("\n1. 소분류 선택 | 2. 이전으로");
                                                                             input = Integer.parseInt(br.readLine());
 
                                                                             try {
@@ -352,10 +351,10 @@ public class StockController {
                                                                                     case 2 -> {
                                                                                         break Loop;
                                                                                     }
-                                                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                                                 }
-                                                                            } catch (IOException | NumberFormatException e) {
-                                                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                                                            } catch (IllegalArgumentException e) {
+                                                                                System.out.println("숫자를 입력하십시오.\n");
                                                                             }
                                                                         }
                                                                     }
@@ -363,11 +362,10 @@ public class StockController {
                                                                     case 2 -> {
                                                                         break Loop;
                                                                     }
-
-                                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                                 }
-                                                            } catch (IOException | NumberFormatException e) {
-                                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                                            } catch (IllegalArgumentException e) {
+                                                                System.out.println("숫자를 입력하십시오.\n");
                                                             }
                                                         }
                                                     }
@@ -375,10 +373,10 @@ public class StockController {
                                                     case 2 -> {
                                                         break Loop;
                                                     }
-                                                    default -> System.out.println("잘못된 접근입니다.");
+                                                    default -> System.out.println("\n잘못된 접근입니다.");
                                                 }
-                                            } catch (IOException | NumberFormatException e) {
-                                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                                            } catch (IllegalArgumentException e) {
+                                                System.out.println("숫자를 입력하십시오.\n");
                                             }
                                         }
                                     }
@@ -386,11 +384,11 @@ public class StockController {
                                         return;
                                     }
                                 }
-                            } catch (IOException | NumberFormatException e) {
-                                System.out.println("오류가 발생했습니다: " + e.getMessage());
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("숫자를 입력하십시오.\n");
                             }
-                        } catch (IOException | NumberFormatException e) {
-                            System.out.println("오류가 발생했습니다: " + e.getMessage());
+                        } catch (IllegalArgumentException | IOException e) {
+                            System.out.println("숫자를 입력하십시오.\n");
                         }
                     }
                 }
@@ -403,22 +401,22 @@ public class StockController {
      */
     private static int createValidMainCategoryId() throws IOException {
         while (true) {
-            List<ProductCategory> categories = productCategoryService.findMainCategories();
-            printCategories(categories);
-            System.out.print("\n번호 입력: ");
+            try {
+                List<ProductCategory> categories = productCategoryService.findMainCategories();
+                printCategories(categories);
+                System.out.print("\n번호 입력: ");
 
-            String categoryId = br.readLine();
+                String categoryId = br.readLine();
 
-            if (isNotNumber(categoryId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (categories.stream()
-                    .map(ProductCategory::getId)
-                    .anyMatch(n -> n == Integer.parseInt(categoryId))) {
-                return Integer.parseInt(categoryId);
-            } else {
-                System.out.println("잘못된 입력입니다.");
+                if (categories.stream()
+                        .map(ProductCategory::getId)
+                        .anyMatch(n -> n == Integer.parseInt(categoryId))) {
+                    return Integer.parseInt(categoryId);
+                } else {
+                    System.out.println("\n잘못된 입력입니다.");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
     }
@@ -428,22 +426,22 @@ public class StockController {
      */
     private static int createValidSubCategoryId(Integer parentId) throws IOException {
         while (true) {
-            List<ProductCategory> categories = productCategoryService.findSubCategories(parentId);
-            printCategories(categories);
-            System.out.print("\n번호 입력: ");
+            try {
+                List<ProductCategory> categories = productCategoryService.findSubCategories(parentId);
+                printCategories(categories);
+                System.out.print("\n번호 입력: ");
 
-            String categoryId = br.readLine();
+                String categoryId = br.readLine();
 
-            if (isNotNumber(categoryId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (categories.stream()
-                    .map(ProductCategory::getId)
-                    .anyMatch(n -> n == Integer.parseInt(categoryId))) {
-                return Integer.parseInt(categoryId);
-            } else {
-                System.out.println("잘못된 입력입니다.");
+                if (categories.stream()
+                        .map(ProductCategory::getId)
+                        .anyMatch(n -> n == Integer.parseInt(categoryId))) {
+                    return Integer.parseInt(categoryId);
+                } else {
+                    System.out.println("\n잘못된 입력입니다.");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
     }
@@ -457,19 +455,18 @@ public class StockController {
         String width;
 
         while (true) {
-            System.out.println("\n가로 사이즈를 입력하세요.\n");
-            System.out.print("가로: ");
-            width = br.readLine();
+            try {
+                System.out.print("\n가로 사이즈를 입력하세요. ");
+                width = br.readLine();
 
-            if (isNotNumber(width)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Double.parseDouble(width) < 0) {
+                    System.out.println("\n0cm 이하는 입력할 수 없습니다.");
+                    continue;
+                }
+                return Double.parseDouble(width);
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            if (Double.parseDouble(width) < 0) {
-                System.out.println("\n0cm 이하는 입력할 수 없습니다.\n");
-                continue;
-            }
-            return Double.parseDouble(width);
         }
     }
 
@@ -482,19 +479,18 @@ public class StockController {
         String height;
 
         while (true) {
-            System.out.println("\n재고 세로 사이즈를 입력하세요.\n");
-            System.out.print("세로: ");
-            height = br.readLine();
+            try {
+                System.out.print("\n재고 세로 사이즈를 입력하세요. ");
+                height = br.readLine();
 
-            if (isNotNumber(height)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Double.parseDouble(height) < 0) {
+                    System.out.println("\n0cm 이하는 입력할 수 없습니다.");
+                    continue;
+                }
+                return Double.parseDouble(height);
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            if (Double.parseDouble(height) < 0) {
-                System.out.println("\n0cm 이하는 입력할 수 없습니다.\n");
-                continue;
-            }
-            return Double.parseDouble(height);
         }
     }
 
@@ -507,18 +503,18 @@ public class StockController {
         String quantity;
 
         while (true) {
-            System.out.println("\n수량을 입력하세요.\n");
-            quantity = br.readLine();
+            try {
+                System.out.print("\n수량을 입력하세요. ");
+                quantity = br.readLine();
 
-            if (isNotNumber(quantity)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Double.parseDouble(quantity) < 0) {
+                    System.out.println("\n0개 이하는 입력할 수 없습니다.");
+                    continue;
+                }
+                return Integer.parseInt(quantity);
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            if (Double.parseDouble(quantity) < 0) {
-                System.out.println("\n0개 이하는 입력할 수 없습니다.\n");
-                continue;
-            }
-            return Integer.parseInt(quantity);
         }
     }
 
@@ -535,14 +531,18 @@ public class StockController {
     private static LocalDateTime createValidExpirationDate(LocalDateTime manufacturedDate) throws
             IOException {
         while (true) {
-            System.out.println("유효기간을 입력합니다.");
-            LocalDateTime expirationDate = createValidTime(createValidDate());
+            try {
+                System.out.println("유효기간을 입력합니다.");
+                LocalDateTime expirationDate = createValidTime(createValidDate());
 
-            if (expirationDate.isBefore(manufacturedDate)) {
-                System.out.println("\n유효기간은 제조일자보다 빠를 수 없습니다.\n");
-                continue;
+                if (expirationDate.isBefore(manufacturedDate)) {
+                    System.out.println("\n유효기간은 제조일자보다 빠를 수 없습니다.");
+                    continue;
+                }
+                return expirationDate;
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            return expirationDate;
         }
     }
 
@@ -557,67 +557,51 @@ public class StockController {
         String day;
 
         while (true) {
-            System.out.print("연도 입력: ");
-            year = br.readLine();
+            try {
+                System.out.print("연도 입력: ");
+                year = br.readLine();
 
-            if (isNotNumber(year)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Integer.parseInt(year) != 2023 && Integer.parseInt(year) != 2024) {
+                    System.out.println("\n잘못된 연도 입니다.");
+                    continue;
+                }
+
+                System.out.print("월 입력 (1~12): ");
+                month = br.readLine();
+
+                if (Integer.parseInt(month) < 1 || Integer.parseInt(month) > 12) {
+                    System.out.println("\n잘못된 월입니다.");
+                    continue;
+                } else if (Integer.parseInt(month) == 2) {
+                    System.out.print("일 입력 (1~28): ");
+                    day = br.readLine();
+
+                    if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 28) {
+                        System.out.println("\n잘못된 일입니다.");
+                        continue;
+                    }
+                } else if (Integer.parseInt(month) == 1 || Integer.parseInt(month) == 3 || Integer.parseInt(month) == 5 ||
+                        Integer.parseInt(month) == 7 || Integer.parseInt(month) == 8 || Integer.parseInt(month) == 10 || Integer.parseInt(month) == 12) {
+                    System.out.print("일 입력 (1~31): ");
+                    day = br.readLine();
+
+                    if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 31) {
+                        System.out.println("\n잘못된 일입니다.");
+                        continue;
+                    }
+                } else {
+                    System.out.print("일 입력 (1~31): ");
+                    day = br.readLine();
+
+                    if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 30) {
+                        System.out.println("\n잘못된 일입니다.");
+                        continue;
+                    }
+                }
+                return LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            if (Integer.parseInt(year) != 2023 && Integer.parseInt(year) != 2024) {
-                System.out.println("\n잘못된 연도 입니다.\n");
-                continue;
-            }
-
-            System.out.print("월 입력 (1~12): ");
-            month = br.readLine();
-
-            if (isNotNumber(month)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (Integer.parseInt(month) < 1 || Integer.parseInt(month) > 12) {
-                System.out.println("\n잘못된 월입니다.\n");
-                continue;
-            } else if (Integer.parseInt(month) == 2) {
-                System.out.print("일 입력 (1~28): ");
-                day = br.readLine();
-
-                if (isNotNumber(day)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 28) {
-                    System.out.println("\n잘못된 일입니다.\n");
-                    continue;
-                }
-            } else if (Integer.parseInt(month) == 1 || Integer.parseInt(month) == 3 || Integer.parseInt(month) == 5 ||
-                    Integer.parseInt(month) == 7 || Integer.parseInt(month) == 8 || Integer.parseInt(month) == 10 || Integer.parseInt(month) == 12) {
-                System.out.print("일 입력 (1~31): ");
-                day = br.readLine();
-
-                if (isNotNumber(day)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 31) {
-                    System.out.println("\n잘못된 일입니다.\n");
-                    continue;
-                }
-            } else {
-                System.out.print("일 입력 (1~31): ");
-                day = br.readLine();
-
-                if (isNotNumber(day)) {
-                    System.out.println("숫자가 아닙니다.");
-                    continue;
-                }
-                if (Integer.parseInt(day) < 1 || Integer.parseInt(day) > 30) {
-                    System.out.println("\n잘못된 일입니다.\n");
-                    continue;
-                }
-            }
-            return LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
         }
     }
 
@@ -633,43 +617,35 @@ public class StockController {
         String second;
 
         while (true) {
-            System.out.print("시간 입력 (1~24): ");
-            hour = br.readLine();
+            try {
+                System.out.print("시간 입력 (1~24): ");
+                hour = br.readLine();
 
-            if (isNotNumber(hour)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (Integer.parseInt(hour) < 1 || Integer.parseInt(hour) > 24) {
-                System.out.println("\n잘못된 시입니다.\n");
-                continue;
-            }
+                if (Integer.parseInt(hour) < 1 || Integer.parseInt(hour) > 24) {
+                    System.out.println("\n잘못된 시입니다.");
+                    continue;
+                }
 
-            System.out.print("분 입력 (0~59): ");
-            minute = br.readLine();
+                System.out.print("분 입력 (0~59): ");
+                minute = br.readLine();
 
-            if (isNotNumber(minute)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-            if (Integer.parseInt(minute) < 0 || Integer.parseInt(minute) > 59) {
-                System.out.println("\n잘못된 분입니다.\n");
-                continue;
-            }
+                if (Integer.parseInt(minute) < 0 || Integer.parseInt(minute) > 59) {
+                    System.out.println("\n잘못된 분입니다.");
+                    continue;
+                }
 
-            System.out.print("분 입력 (0~59): ");
-            second = br.readLine();
+                System.out.print("분 입력 (0~59): ");
+                second = br.readLine();
 
-            if (isNotNumber(second)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
+                if (Integer.parseInt(second) < 0 || Integer.parseInt(second) > 59) {
+                    System.out.println("\n잘못된 초입니다.");
+                    continue;
+                }
+                return LocalDateTime.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth(),
+                        Integer.parseInt(hour) - 1, Integer.parseInt(minute), Integer.parseInt(second));
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
-            if (Integer.parseInt(second) < 0 || Integer.parseInt(second) > 59) {
-                System.out.println("\n잘못된 초입니다.\n");
-                continue;
-            }
-            return LocalDateTime.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth(),
-                    Integer.parseInt(hour) - 1, Integer.parseInt(minute), Integer.parseInt(second));
         }
     }
 
@@ -679,31 +655,21 @@ public class StockController {
      */
     private static int findValidStockId(List<StockDto> stocks) throws IOException {
         while (true) {
-//            findStocks(user);
-            System.out.println("\n재고의 번호를 선택하세요.\n");
-            System.out.print("번호 입력: ");
-            String stockId = br.readLine();
+            try {
+                System.out.print("\n재고의 번호를 선택하세요. ");
+                String stockId = br.readLine();
 
-            if (isNotNumber(stockId)) {
-                System.out.println("숫자가 아닙니다.");
-                continue;
-            }
-
-            if (stocks.stream()
-                    .map(StockDto::getId)
-                    .anyMatch(n -> n == Integer.parseInt(stockId))) {
-                return Integer.parseInt(stockId);
-            } else {
-                System.out.println("\n조회할 수 없는 재고 건입니다.\n");
+                if (stocks.stream()
+                        .map(StockDto::getId)
+                        .anyMatch(n -> n == Integer.parseInt(stockId))) {
+                    return Integer.parseInt(stockId);
+                } else {
+                    System.out.println("\n조회할 수 없는 재고 건입니다.");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("숫자를 입력하십시오.\n");
             }
         }
-    }
-
-    /**
-     * 숫자를 입력 받을 때 문자, 공백, 특수문자가 포함되어 있는지 확인함
-     */
-    private static boolean isNotNumber(String input) {
-        return !input.matches("^[0-9]+$");
     }
 
     private static void printCategories(List<ProductCategory> categories) {
