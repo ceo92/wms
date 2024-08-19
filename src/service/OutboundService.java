@@ -13,12 +13,12 @@ public class OutboundService {
   private final OutboundDao outboundDao = new OutboundDao();
 
   // 출고 요청 등록
-  public void requestOutbound(Outbound outbound) throws SQLException {
+  public void requestOutbound(Outbound outbound){
     try {
       outboundDao.insertOutbound(outbound);
     } catch (SQLException e) {
       System.out.println("출고 요청을 등록하는 중 오류가 발생했습니다: " + e.getMessage());
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 
