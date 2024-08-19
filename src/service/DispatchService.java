@@ -13,7 +13,7 @@ public class DispatchService {
   private final DispatchDao dispatchDao = new DispatchDao();
 
   // 배차등록: 주문자의 지역ID와 배송기사의 지역ID가 같은 경우 배차 상태를 배차할당으로 변경
-  public void registerDispatch() {
+  public void registerDispatch() throws SQLException{
     try {
       List<Dispatch> nonAssignedDispatches = dispatchDao.findNonAssignedDispatches();
       for (Dispatch dispatch : nonAssignedDispatches) {
@@ -30,7 +30,7 @@ public class DispatchService {
 
 
   // 배차리스트 조회: 배차할당 상태의 배차 정보를 조회
-  public List<Dispatch> viewAssignedDispatches() {
+  public List<Dispatch> viewAssignedDispatches() throws SQLException{
     try {
       return dispatchDao.findAssignedDispatches();
     } catch (SQLException e) {
@@ -40,7 +40,7 @@ public class DispatchService {
   }
 
   // 배차정보 수정: 배차를 다른 배송기사로 변경
-  public void modifyDispatch(int dispatchId, DeliveryMan newDeliveryMan) {
+  public void modifyDispatch(int dispatchId, DeliveryMan newDeliveryMan) throws SQLException{
     try {
       Dispatch dispatch = dispatchDao.findAssignedDispatchById(dispatchId);
       if (dispatch != null) {
@@ -54,7 +54,7 @@ public class DispatchService {
   }
 
   // 배차 취소: 배차 상태를 배차미할당으로 변경
-  public void cancelDispatch(int dispatchId) {
+  public void cancelDispatch(int dispatchId) throws SQLException{
     try {
       dispatchDao.cancelDispatch(dispatchId);
     } catch (SQLException e) {

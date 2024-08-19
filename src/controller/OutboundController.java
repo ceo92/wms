@@ -225,21 +225,23 @@ public class OutboundController {
       Outbound outbound = new Outbound(buyerName, buyerRegionId, buyerCity, buyerAddress, productName, productQuantity, OutboundType.WAITINGFORAPPROVAL, businessManId);
       outboundService.requestOutbound(outbound);
       System.out.println("출고 요청이 성공적으로 등록되었습니다.");
-    } catch (IOException | NumberFormatException e) {
-      System.out.println("출고 요청 중 오류가 발생했습니다: " + e.getMessage());
-    } catch (WmsException e){
+    } catch (IOException | SQLException | NumberFormatException e) {
       System.out.println("출고 요청 중 오류가 발생했습니다: " + e.getMessage());
     }
   }
 
   // 출고요청 관리
-  private void manageOutboundCheck(BufferedReader br) throws IOException {
+  private void manageOutboundCheck(BufferedReader br) throws IOException, SQLException {
     System.out.println("1. 미승인 리스트 보기 2. 승인 및 지연 처리 3. 종료");
     int choice = Integer.parseInt(br.readLine());
     switch (choice) {
       case 1:
-        List<OutboundDto> nonApprovedOutbounds = outboundService.viewNonApprovedOutbounds();
-        nonApprovedOutbounds.forEach(outbound -> System.out.println(outbound.toString()));
+        try {
+          List<OutboundDto> nonApprovedOutbounds = outboundService.viewNonApprovedOutbounds();
+          nonApprovedOutbounds.forEach(outbound -> System.out.println(outbound.toString()));
+        } catch (SQLException e) {
+          System.out.println("미승인 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+        }
         break;
       case 2:
         try {
@@ -248,9 +250,7 @@ public class OutboundController {
           System.out.println("가용 가능한 재고 수량을 입력하세요:");//여기서 가용 가능한재고 가져오기
           int availableStock = Integer.parseInt(br.readLine());
           outboundService.processOutboundApproval(outboundId, availableStock);
-        } catch (NumberFormatException e) {
-          System.out.println("출고 승인 처리 중 오류가 발생했습니다: " + e.getMessage());
-        } catch (WmsException e){
+        } catch (SQLException | NumberFormatException e) {
           System.out.println("출고 승인 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
         break;
@@ -267,8 +267,12 @@ public class OutboundController {
     int choice = Integer.parseInt(br.readLine());
     switch (choice) {
       case 1:
-        List<OutboundDto> approvedOutbounds = outboundService.viewApprovedOutbounds();
-        approvedOutbounds.forEach(outbound -> System.out.println(outbound.toString()));
+        try {
+          List<OutboundDto> approvedOutbounds = outboundService.viewApprovedOutbounds();
+          approvedOutbounds.forEach(outbound -> System.out.println(outbound.toString()));
+        } catch (SQLException e) {
+          System.out.println("출고 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+        }
         break;
       case 2:
         try {
@@ -276,13 +280,17 @@ public class OutboundController {
           String productName = br.readLine();
           List<OutboundDto> searchResults = outboundService.searchApprovedOutbounds(productName);
           searchResults.forEach(outbound -> System.out.println(outbound.toString()));
-        } catch (WmsException e) {
+        } catch (SQLException e) {
           System.out.println("출고 상품을 검색하는 중 오류가 발생했습니다: " + e.getMessage());
         }
         break;
       case 3:
-        List<DispatchDto> outboundInstructions = outboundService.viewOutboundInstructions();
-        outboundInstructions.forEach(instruction -> System.out.println(instruction.toString()));
+        try {
+          List<DispatchDto> outboundInstructions = outboundService.viewOutboundInstructions();
+          outboundInstructions.forEach(instruction -> System.out.println(instruction.toString()));
+        } catch (SQLException e) {
+          System.out.println("출고 지시서를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+        }
         break;
       case 4:
         return;
@@ -296,7 +304,7 @@ public class OutboundController {
     try {
       List<OutboundDto> approvedOutbounds = outboundService.viewApprovedOutbounds();
       approvedOutbounds.forEach(outbound -> System.out.println(outbound.toString()));
-    } catch (WmsException e) {
+    } catch (SQLException e) {
       System.out.println("출고 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
     }
   }
@@ -306,7 +314,7 @@ public class OutboundController {
     try {
       List<DispatchDto> outboundInstructions = outboundService.viewOutboundInstructions();
       outboundInstructions.forEach(instruction -> System.out.println(instruction.toString()));
-    } catch (WmsException e) {
+    } catch (SQLException e) {
       System.out.println("출고 지시서를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
     }
   }
@@ -317,12 +325,20 @@ public class OutboundController {
     int choice = Integer.parseInt(br.readLine());
     switch (choice) {
       case 1:
-        dispatchService.registerDispatch();
-        System.out.println("배차 등록이 완료되었습니다.");
+        try {
+          dispatchService.registerDispatch();
+          System.out.println("배차 등록이 완료되었습니다.");
+        } catch (SQLException e) {
+          System.out.println("배차 등록 중 오류가 발생했습니다: " + e.getMessage());
+        }
         break;
       case 2:
-        List<Dispatch> dispatchList = dispatchService.viewAssignedDispatches();
-        dispatchList.forEach(dispatch -> System.out.println(dispatch.toString()));
+        try {
+          List<Dispatch> dispatchList = dispatchService.viewAssignedDispatches();
+          dispatchList.forEach(dispatch -> System.out.println(dispatch.toString()));
+        } catch (SQLException e) {
+          System.out.println("배차 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+        }
         break;
       case 3:
         try {
@@ -343,7 +359,7 @@ public class OutboundController {
           int cancelDispatchId = Integer.parseInt(br.readLine());
           dispatchService.cancelDispatch(cancelDispatchId);
           System.out.println("배차가 취소되었습니다.");
-        } catch (WmsException e) {
+        } catch (SQLException e) {
           System.out.println("배차를 취소하는 중 오류가 발생했습니다: " + e.getMessage());
         }
         break;
@@ -361,9 +377,6 @@ public class OutboundController {
     switch (choice) {
       case 1:
         try {
-//          System.out.println("배차 ID를 입력하세요:");
-//          Dispatch dispatch = new Dispatch(dispatchId, null, null, DispatchType.ASSIGNED);
-          //
           Waybill waybill = new Waybill();
           List<Dispatch> dispatchList = dispatchService.viewAssignedDispatches();
           System.out.println("운송장에 등록할 배차 ID 를 입력해주세요: ");
@@ -376,7 +389,7 @@ public class OutboundController {
           }
           waybillService.registerWaybill(waybill);
           System.out.println("운송장 등록이 완료되었습니다.");
-        } catch (WmsException e) {
+        } catch (SQLException e) {
           System.out.println("운송장 등록 중 오류가 발생했습니다: " + e.getMessage());
         }
         break;
@@ -405,7 +418,11 @@ public class OutboundController {
 
   // 운송장 조회
   private void viewWaybill(BufferedReader br) {
-    List<Waybill> waybillList = waybillService.viewAllWaybills();
-    waybillList.forEach(waybill -> System.out.println(waybill.toString()));
+    try {
+      List<Waybill> waybillList = waybillService.viewAllWaybills();
+      waybillList.forEach(waybill -> System.out.println(waybill.toString()));
+    } catch (SQLException e) {
+      System.out.println("운송장 리스트를 조회하는 중 오류가 발생했습니다: " + e.getMessage());
+    }
   }
 }

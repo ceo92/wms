@@ -13,7 +13,7 @@ public class OutboundService {
   private final OutboundDao outboundDao = new OutboundDao();
 
   // 출고 요청 등록
-  public void requestOutbound(Outbound outbound){
+  public void requestOutbound(Outbound outbound) throws SQLException{
     try {
       outboundDao.insertOutbound(outbound);
     } catch (SQLException e) {
@@ -23,7 +23,7 @@ public class OutboundService {
   }
 
   // 미승인 출고 요청 조회
-  public List<OutboundDto> viewNonApprovedOutbounds() {
+  public List<OutboundDto> viewNonApprovedOutbounds() throws SQLException{
     try {
       return outboundDao.findNonApprovedOutbounds();
     } catch (SQLException e) {
@@ -33,7 +33,7 @@ public class OutboundService {
   }
 
   // 출고 요청 승인 및 지연 처리
-  public void processOutboundApproval(int outboundId, int availableStock) {
+  public void processOutboundApproval(int outboundId, int availableStock) throws SQLException {
     try {
       Outbound outbound = outboundDao.findOutboundById(outboundId);
       if (outbound != null) {
@@ -51,7 +51,7 @@ public class OutboundService {
   }
 
   // 승인된 출고 리스트 조회
-  public List<OutboundDto> viewApprovedOutbounds() {
+  public List<OutboundDto> viewApprovedOutbounds() throws SQLException {
     try {
       return outboundDao.findApprovedOutbounds();
     } catch (SQLException e) {
@@ -61,7 +61,7 @@ public class OutboundService {
   }
 
   // 출고 상품 검색
-  public List<OutboundDto> searchApprovedOutbounds(String productName) {
+  public List<OutboundDto> searchApprovedOutbounds(String productName) throws SQLException{
     try {
       return outboundDao.searchApprovedOutbounds(productName);
     } catch (SQLException e) {
@@ -71,7 +71,7 @@ public class OutboundService {
   }
 
   // 출고 지시서 보기
-  public List<DispatchDto> viewOutboundInstructions() {
+  public List<DispatchDto> viewOutboundInstructions() throws SQLException{
     try {
       return outboundDao.findOutboundInstructions();
     } catch (SQLException e) {
