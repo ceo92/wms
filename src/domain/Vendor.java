@@ -11,4 +11,8 @@ public class Vendor {
     private Integer id;
     private String name;
 
+    public Vendor(int id) {
+        this.id = id;
+    }
+
 }
