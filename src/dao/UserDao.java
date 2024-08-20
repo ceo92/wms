@@ -130,7 +130,6 @@ public class UserDao {
     return Optional.empty();
     //BusinessMan , DeliveryMan도 아니면 ADMIN 혹은 WAREHOUSE_MANAGER이므로 해당 데이터를 던져주면 됨 ㅇㅇ 이게 사실은 else문이 되게 됨
   }
-
   /**
    * 권한 별로 조회하기
    */
@@ -194,19 +193,19 @@ public class UserDao {
 
 
   public List<User> findAll(Connection con) throws SQLException {
-    StringBuilder sql = new StringBuilder("select * from user");
+    StringBuilder superTableSql = new StringBuilder("select * from user");
     PreparedStatement superTablePstmt = null, subTablePstmt = null;
     ResultSet superTableRs = null, subTableRs = null;
     List<User> users = new ArrayList<>();
     try{
-      superTablePstmt = con.prepareStatement(sql.toString());
+      superTablePstmt = con.prepareStatement(superTableSql.toString());
       superTableRs = superTablePstmt.executeQuery();
       while (superTableRs.next()){
         User user = new User(superTableRs.getInt("id") , superTableRs.getString("name") ,  superTableRs.getString("phone_number") ,
             superTableRs.getString("login_email") , superTableRs.getString("password") , RoleType.valueOf(superTableRs.getString("role_type")) , superTableRs.getString("password_question") , superTableRs.getString("password_answer"));
         if (user.getRoleType() == BUSINESS_MAN){
-          sql.replace(14, 18, "business_man");
-          subTablePstmt = con.prepareStatement(sql.toString());
+          String subTableSql ="select * from business_man";
+          subTablePstmt = con.prepareStatement(subTableSql);
           subTableRs = subTablePstmt.executeQuery();
           while (subTableRs.next()) {
             BusinessMan businessMan = new BusinessMan(user.getId(), user.getName(),
@@ -217,17 +216,17 @@ public class UserDao {
             users.add(businessMan);
           }
         } else if (user.getRoleType() == DELIVERY_MAN ) {
-          sql.replace(14, 18, "delivery_man");
-          subTablePstmt = con.prepareStatement(sql.toString());
+          String subTableSql = "select * from delivery_man d join region r on d.region_id = r.id";
+          subTablePstmt = con.prepareStatement(subTableSql);
           subTableRs = subTablePstmt.executeQuery();
           while (subTableRs.next()) {
             DeliveryMan deliveryMan = new DeliveryMan(user.getId(), user.getName(),
                 user.getPhoneNumber(),
                 user.getLoginEmail(), user.getPassword(), user.getRoleType(),
                 user.getPasswordQuestion(), user.getPasswordAnswer(),
-                subTableRs.getString("delivery_man_num"), subTableRs.getString("car_num")
-                , new Region(subTableRs.getInt("id"), subTableRs.getString("code"),
-                subTableRs.getString("name"), subTableRs.getObject("parent_id", Integer.class)));
+                subTableRs.getString("d.delivery_man_num"), subTableRs.getString("d.car_num")
+                , new Region(subTableRs.getInt("r.id"), subTableRs.getString("r.code"),
+                subTableRs.getString("r.name"), subTableRs.getObject("r.parent_id", Integer.class)));
             users.add(deliveryMan);
           }
         }
@@ -292,7 +291,7 @@ public class UserDao {
    * 변경 : 비밀번호
    */
 
-  public void updatePassword(User user ,  Connection con) throws SQLException {
+  public void updatePassword(User user ,  Connection con) {
     String sql = "update user set password = ? where id = ?";
     PreparedStatement pstmt = null;
 
@@ -338,7 +337,6 @@ public class UserDao {
   }
 
   private void close(Statement stmt, ResultSet rs) {
-
     if (rs != null) {
       try {
         rs.close(); //ResultSet 닫기
@@ -346,7 +344,6 @@ public class UserDao {
         throw new RuntimeException(e);
       }
     }
-
     if (stmt != null) {
       try {
         stmt.close(); //PreparedStatement 닫기
