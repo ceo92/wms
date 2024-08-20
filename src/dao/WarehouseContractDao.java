@@ -74,7 +74,7 @@ public class WarehouseContractDao {
                                     rs.getString("u.phone_number"),
                                     rs.getString("u.login_email"),
                                     null,
-                                    RoleType.valueOf(rs.getString("u.role_type")),
+                                    RoleType.valueOf(rs.getString("u.role_type")), null, null,
                                     rs.getString("bm.business_num"),
                                     rs.getString("bm.business_name")))
                             .capacity(rs.getDouble("wc.capacity"))

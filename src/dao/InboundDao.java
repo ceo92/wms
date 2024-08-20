@@ -4,6 +4,7 @@ import domain.*;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -19,9 +20,9 @@ public class InboundDao {
             pstmt.setInt(1, inbound.getUser().getId());
             pstmt.setInt(2, inbound.getVendor().getId());
             pstmt.setInt(3, inbound.getWarehouse().getId());
-            pstmt.setString(4, inbound.getStatus().getValue());
+            pstmt.setString(4, inbound.getStatus().name());
             pstmt.setDate(5, java.sql.Date.valueOf(inbound.getInboundExpectedDate()));
-            pstmt.setDate(6, java.sql.Date.valueOf(inbound.getInboundCompletedDate()));
+            pstmt.setDate(6, null);
             pstmt.setTimestamp(7, java.sql.Timestamp.valueOf(inbound.getRegDate()));
             int affectedRows = pstmt.executeUpdate();
             if(affectedRows == 0) {
@@ -40,7 +41,7 @@ public class InboundDao {
     }
 
     public boolean updateExpectedDate(Connection con, int id, LocalDate date) {
-        String sql = "UPDATE inbound SET inbound_expected_date = ? AND mod_date = now()"
+        String sql = "UPDATE inbound SET inbound_expected_date = ?, mod_date = now()"
                 + " WHERE id = ?";
         try(PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setDate(1, java.sql.Date.valueOf(date));
@@ -53,10 +54,10 @@ public class InboundDao {
     }
 
     public boolean updateStatus(Connection con, int id, InboundStatus status) {
-        String sql = "UPDATE inbound SET inbound_status = ? AND mod_date = now() "
+        String sql = "UPDATE inbound SET inbound_status = ?, mod_date = now() "
                 + " WHERE id = ?";
         try(PreparedStatement pstmt = con.prepareStatement(sql)) {
-            pstmt.setString(1, status.getValue());
+            pstmt.setString(1, status.name());
             pstmt.setInt(2, id);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows != 0;
@@ -93,19 +94,16 @@ public class InboundDao {
                         .id(rs.getInt("i.id"))
                         .warehouse(Warehouse.builder()
                                 .id(rs.getInt("w.id"))
-                                .manager(User.builder()
-                                        .id(rs.getInt("w.manager_id"))
-                                        .build())
+                                .manager(new User(rs.getInt("w.manager_id")))
+                                .name(rs.getString("w.name"))
                                 .build())
                         .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
-                        .user(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .build())
+                        .user(new User(rs.getInt("u.id")))
                         .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
-                        .inboundExpectedDate(rs.getDate("i.inbound_expected_date").toLocalDate())
-                        .inboundCompletedDate(rs.getDate("i.inbound_completed_date").toLocalDate())
-                        .regDate(rs.getTimestamp("i.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("i.mod_date").toLocalDateTime())
+                        .inboundExpectedDate(convertLocalDate(rs.getDate("i.inbound_expected_date")))
+                        .inboundCompletedDate(convertLocalDate(rs.getDate("i.inbound_completed_date")))
+                        .regDate(convertLocalDateTime(rs.getTimestamp("i.reg_date")))
+                        .modDate(convertLocalDateTime(rs.getTimestamp("i.mod_date")))
                         .build();
                 return Optional.of(inbound);
             } else {
@@ -116,11 +114,79 @@ public class InboundDao {
         }
     }
 
+
+    public List<Inbound> findInboundByUserId(Connection con, int userId) {
+        String sql = "SELECT * FROM inbound i, warehouse w, user u, vendor v"
+                + " WHERE i.user_id = ? AND i.warehouse_id = w.id AND i.user_id = u.id AND i.vendor_id = v.id"
+                + " ORDER BY i.reg_date ASC";
+        List<Inbound> inboundList = new ArrayList<>();
+        try {
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs != null && rs.next()) {
+                Inbound inbound = Inbound.builder()
+                        .id(rs.getInt("i.id"))
+                        .warehouse(Warehouse.builder()
+                                .id(rs.getInt("w.id"))
+                                .manager(new User(rs.getInt("w.manager_id")))
+                                .name(rs.getString("w.name"))
+                                .build())
+                        .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
+                        .user(new User(rs.getInt("u.id")))
+                        .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
+                        .inboundExpectedDate(convertLocalDate(rs.getDate("i.inbound_expected_date")))
+                        .inboundCompletedDate(convertLocalDate(rs.getDate("i.inbound_completed_date")))
+                        .regDate(convertLocalDateTime(rs.getTimestamp("i.reg_date")))
+                        .modDate(convertLocalDateTime(rs.getTimestamp("i.mod_date")))
+                        .build();
+                inboundList.add(inbound);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return inboundList;
+    }
+
+    public List<Inbound> findByStatus(Connection con, InboundStatus status) {
+        String sql = "SELECT * FROM inbound i, warehouse w, user u, vendor v"
+                + " WHERE i.inbound_status = ? AND i.warehouse_id = w.id AND i.user_id = u.id AND i.vendor_id = v.id"
+                + " ORDER BY i.reg_date ASC";;
+        List<Inbound> inboundList = new ArrayList<>();
+        try {
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, status.name());
+            ResultSet rs = pstmt.executeQuery();
+            while(rs != null && rs.next()) {
+                Inbound inbound = Inbound.builder()
+                        .id(rs.getInt("i.id"))
+                        .warehouse(Warehouse.builder()
+                                .id(rs.getInt("w.id"))
+                                .manager(new User(rs.getInt("w.manager_id")))
+                                .name(rs.getString("w.name"))
+                                .build())
+                        .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
+                        .user(new User(rs.getInt("u.id")))
+                        .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
+                        .inboundExpectedDate(convertLocalDate(rs.getDate("i.inbound_expected_date")))
+                        .inboundCompletedDate(convertLocalDate(rs.getDate("i.inbound_completed_date")))
+                        .regDate(convertLocalDateTime(rs.getTimestamp("i.reg_date")))
+                        .modDate(convertLocalDateTime(rs.getTimestamp("i.mod_date")))
+                        .build();
+                inboundList.add(inbound);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return inboundList;
+    }
+
     public List<Inbound> findInboundsByPeriod(Connection con, LocalDate fromDate, LocalDate toDate) {
         List<Inbound> inbounds = new ArrayList<>();
         String sql = "SELECT * FROM inbound i, warehouse w, user u, vendor v"
                 + " WHERE i.reg_date BETWEEN ? AND ?"
-                + " AND i.warehouse_id = w.id AND i.user_id = u.id AND i.vendor_id = v.id";
+                + " AND i.warehouse_id = w.id AND i.user_id = u.id AND i.vendor_id = v.id"
+                + " ORDER BY i.reg_date ASC";;
         try {
             PreparedStatement pstmt = con.prepareStatement(sql);
             pstmt.setDate(1, java.sql.Date.valueOf(fromDate));
@@ -131,19 +197,16 @@ public class InboundDao {
                         .id(rs.getInt("i.id"))
                         .warehouse(Warehouse.builder()
                                 .id(rs.getInt("w.id"))
-                                .manager(User.builder()
-                                        .id(rs.getInt("w.manager_id"))
-                                        .build())
+                                .manager(new User(rs.getInt("w.manager_id")))
+                                .name(rs.getString("w.name"))
                                 .build())
                         .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
-                        .user(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .build())
+                        .user(new User(rs.getInt("u.id")))
                         .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
-                        .inboundExpectedDate(rs.getDate("i.inbound_expected_date").toLocalDate())
-                        .inboundCompletedDate(rs.getDate("i.inbound_completed_date").toLocalDate())
-                        .regDate(rs.getTimestamp("i.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("i.mod_date").toLocalDateTime())
+                        .inboundExpectedDate(convertLocalDate(rs.getDate("i.inbound_expected_date")))
+                        .inboundCompletedDate(convertLocalDate(rs.getDate("i.inbound_completed_date")))
+                        .regDate(convertLocalDateTime(rs.getTimestamp("i.reg_date")))
+                        .modDate(convertLocalDateTime(rs.getTimestamp("i.mod_date")))
                         .build();
                 inbounds.add(inbound);
             }
@@ -152,4 +215,50 @@ public class InboundDao {
             throw new RuntimeException(e);
         }
     }
+
+    public List<Inbound> findAll(Connection con) {
+        List<Inbound> inbounds = new ArrayList<>();
+        String sql = "SELECT * FROM inbound i, warehouse w, user u, vendor v"
+                + " WHERE i.warehouse_id = w.id AND i.user_id = u.id AND i.vendor_id = v.id"
+                + " ORDER BY i.reg_date ASC";
+        try(Statement stmt = con.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while(rs != null && rs.next()) {
+                Inbound inbound = Inbound.builder()
+                        .id(rs.getInt("i.id"))
+                        .warehouse(Warehouse.builder()
+                                .id(rs.getInt("w.id"))
+                                .manager(new User(rs.getInt("w.manager_id")))
+                                .name(rs.getString("w.name"))
+                                .build())
+                        .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
+                        .user(new User(rs.getInt("u.id")))
+                        .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
+                        .inboundExpectedDate(convertLocalDate(rs.getDate("i.inbound_expected_date")))
+                        .inboundCompletedDate(convertLocalDate(rs.getDate("i.inbound_completed_date")))
+                        .regDate(convertLocalDateTime(rs.getTimestamp("i.reg_date")))
+                        .modDate(convertLocalDateTime(rs.getTimestamp("i.mod_date")))
+                        .build();
+                inbounds.add(inbound);
+            }
+            return inbounds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private LocalDateTime convertLocalDateTime(Timestamp timestamp) {
+        if(timestamp == null) {
+            return null;
+        }
+        return timestamp.toLocalDateTime();
+    }
+
+    private LocalDate convertLocalDate(java.sql.Date date) {
+        if(date == null) {
+            return null;
+        }
+        return date.toLocalDate();
+    }
+
 }

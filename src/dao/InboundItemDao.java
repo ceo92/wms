@@ -56,13 +56,11 @@ public class InboundItemDao {
                                 .build())
                         .inbound(Inbound.builder()
                                 .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
-                                .user(User.builder()
-                                        .id(rs.getInt("i.user_id"))
-                                        .build())
+                                .user(new User(rs.getInt("i.user_id")))
                                 .warehouse(Warehouse.builder()
                                         .id(rs.getInt("i.warehouse_id"))
                                         .build())
-                                .status(InboundStatus.valueOf(rs.getString("i.status")))
+                                .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
                                 .build())
                         .completeQuantity(rs.getInt("ii.complete_quantity"))
                         .requestQuantity(rs.getInt("ii.request_quantity"))
@@ -95,13 +93,11 @@ public class InboundItemDao {
                                 .build())
                         .inbound(Inbound.builder()
                                 .vendor(new Vendor(rs.getInt("v.id"), rs.getString("v.name")))
-                                .user(User.builder()
-                                        .id(rs.getInt("i.user_id"))
-                                        .build())
+                                .user(new User(rs.getInt("i.user_id")))
                                 .warehouse(Warehouse.builder()
                                         .id(rs.getInt("i.warehouse_id"))
                                         .build())
-                                .status(InboundStatus.valueOf(rs.getString("i.status")))
+                                .status(InboundStatus.valueOf(rs.getString("i.inbound_status")))
                                 .build())
                         .completeQuantity(rs.getInt("ii.complete_quantity"))
                         .requestQuantity(rs.getInt("ii.request_quantity"))
@@ -157,7 +153,7 @@ public class InboundItemDao {
     }
 
     public boolean deleteInboundItem(Connection con, int itemId) {
-        String sql = "DELETE inbound_item WHERE id = ?";
+        String sql = "DELETE FROM inbound_item WHERE id = ?";
         try(PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setInt(1, itemId);
             int affectedRows = pstmt.executeUpdate();

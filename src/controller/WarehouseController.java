@@ -20,7 +20,7 @@ public class WarehouseController {
 
     public static void main(String[] args) throws IOException {
         WarehouseController wc = new WarehouseController();
-        wc.start(User.builder().id(1).roleType(RoleType.ADMIN).build());
+        wc.start(new User(1, RoleType.ADMIN));
     }
 
     public void start(User user) throws IOException {
@@ -211,7 +211,6 @@ public class WarehouseController {
                 default -> System.out.println("1, 2 중에서 입력해주세요.");
             }
         }
-
     }
 
     private void printWarehouseDetail(Warehouse warehouse) {

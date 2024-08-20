@@ -47,13 +47,6 @@ public class WarehouseDao {
             if(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_email"))
-                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
@@ -83,20 +76,14 @@ public class WarehouseDao {
     }
 
     public List<Warehouse> findAll(Connection con) {
-        String sql = "SELECT * FROM warehouse";
+        String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
+                + " WHERE w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
         List<Warehouse> warehouseList = new ArrayList<>();
         try(Statement stmt = con.createStatement()) {
             ResultSet rs = stmt.executeQuery(sql);
             while(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_email"))
-                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
@@ -134,13 +121,6 @@ public class WarehouseDao {
             while(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_email"))
-                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
@@ -178,13 +158,6 @@ public class WarehouseDao {
             while(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_email"))
-                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
@@ -222,13 +195,6 @@ public class WarehouseDao {
             while(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_email"))
-                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
@@ -265,13 +231,6 @@ public class WarehouseDao {
             if(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginEmail(rs.getString("u.login_email"))
-                                .roleType(RoleType.valueOf(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
