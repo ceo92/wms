@@ -41,15 +41,20 @@ public class ExpenseController {
 
                                         Loop:
                                         while (true) {
-                                            System.out.println("\n1. 지출 구분별 내역 조회 | 2. 연간 지출내역 조회 | 3. 이전으로");
+
                                             try {
+                                                System.out.println("\n1. 지출 구분별 내역 조회 | 2. 연간 지출내역 조회 | 3. 이전으로");
                                                 input = Integer.parseInt(br.readLine());
 
                                                 switch (input) {
-                                                    case 1 -> printExpenses(expenseService.findAllExpensesByCategoryId(createValidCategoryId()));
-
-                                                    case 2 -> printExpenses(expenseService.findExpensesByYear(createValidYear()));
-
+                                                    case 1 -> {
+                                                        printExpenses(expenseService.findAllExpensesByCategoryId(createValidCategoryId()));
+                                                        break Loop;
+                                                    }
+                                                    case 2 -> {
+                                                        printExpenses(expenseService.findExpensesByYear(createValidYear()));
+                                                        break Loop;
+                                                    }
                                                     case 3 -> {
                                                         break Loop;
                                                     }
@@ -140,7 +145,7 @@ public class ExpenseController {
                                     }
 
                                     case 2 -> expenseService.saveExpense(ExpenseSaveDto.builder()
-                                            .warehouseId(warehouseService.findOneByManagerId(user.getId()).getId())
+                                            .warehouseId(warehouseService.findWarehouseById(user.getId()).getId())
                                             .expenseDate(createValidDate())
                                             .categoryId(createValidCategoryId())
                                             .expenseAmount(createValidAmount())
@@ -303,18 +308,18 @@ public class ExpenseController {
      * @return 지출 구분 카테고리 번호
      */
     private static int createValidCategoryId() throws IOException {
-        String categoryId = "";
+        String categoryId;
 
         while (true) {
             try {
                 System.out.println("\n지출 구분을 선택하세요.\n");
                 System.out.println("1. 유지보수비 | 2. 인건비 | 3. 운송비");
+                categoryId = br.readLine();
 
                 if (Integer.parseInt(categoryId) < 1 || Integer.parseInt(categoryId) > 3) {
                     System.out.println("\n다시 압력해주세요.\n");
                     continue;
                 }
-                categoryId = br.readLine();
                 return Integer.parseInt(categoryId);
             } catch (IllegalArgumentException e) {
                 System.out.println("숫자를 입력하십시오. ");
