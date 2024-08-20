@@ -32,7 +32,7 @@ public class InboundService {
      * @param inboundDto
      * @param itemDtoList
      */
-    public void saveInbound(InboundDto inboundDto, List<InboundItemDto> itemDtoList) {
+    public boolean saveInbound(InboundDto inboundDto, List<InboundItemDto> itemDtoList) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -45,6 +45,7 @@ public class InboundService {
             } else {
                 con.rollback();
             }
+            return result;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);
@@ -69,6 +70,51 @@ public class InboundService {
                     () -> new RuntimeException("존재하지 않는 입고 요청입니다."));
             con.setReadOnly(false);
             return inbound;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 회원별 입고 조회
+     *
+     * @param userId 회원 id
+     * @return
+     */
+    public List<Inbound> findInboundByUserId(int userId) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<Inbound> inbounds = inboundDao.findInboundByUserId(con, userId);
+            con.setReadOnly(false);
+            return inbounds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Inbound> findInboundsByStatus(InboundStatus status) {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<Inbound> inbounds = inboundDao.findByStatus(con, status);
+            con.setReadOnly(false);
+            return inbounds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Inbound> findAllInbounds() {
+        Connection con = null;
+        try {
+            con = DriverManagerDBConnectionUtil.getInstance().getConnection();
+            con.setReadOnly(true);
+            List<Inbound> inbounds = inboundDao.findAll(con);
+            con.setReadOnly(false);
+            return inbounds;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -133,7 +179,7 @@ public class InboundService {
      * @param id 입고 id
      * @param dateString 날짜 문자열
      */
-    public void updateExpectedDate(int id, String dateString) {
+    public boolean updateExpectedDate(int id, String dateString) {
         // TODO: id, dateString 검증
         LocalDate date = convertStringToDate(dateString);
         Connection con = null;
@@ -149,8 +195,8 @@ public class InboundService {
                 con.commit();
             } else {
                 con.rollback();
-                throw new RuntimeException("입고 예상 날짜 수정에 실패했습니다.");
             }
+            return updateResult;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);
@@ -162,7 +208,7 @@ public class InboundService {
     /**
      * 입고 품목 수량 변경
      */
-    public void updateItemRequestQuantity(int itemId, int quantity) {
+    public boolean updateItemRequestQuantity(int itemId, int quantity) {
         // TODO: itemId, quantity 검증
         Connection con = null;
         try {
@@ -173,8 +219,8 @@ public class InboundService {
                 con.commit();
             } else {
                 con.rollback();
-                throw new RuntimeException("입고 품목 수량 변경에 실패했습니다.");
             }
+            return updateResult;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);
@@ -188,7 +234,7 @@ public class InboundService {
      *
      * @param itemId
      */
-    public void deleteInboundItem(int itemId) {
+    public boolean deleteInboundItem(int itemId) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
@@ -198,8 +244,8 @@ public class InboundService {
                 con.commit();
             } else {
                 con.rollback();
-                throw new RuntimeException("입고 품목 삭제를 실패했습니다.");
             }
+            return updateResult;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);
@@ -216,16 +262,17 @@ public class InboundService {
      * @param itemId 입고 처리할 품목
      * @param stock 등록할 재고 정보
      */
-    public void confirmInbound(int itemId, Stock stock) {
+    public boolean confirmInbound(int itemId, Stock stock) {
         Connection con = null;
         try {
             con = DriverManagerDBConnectionUtil.getInstance().getConnection();
             con.setAutoCommit(false);
             if(stockDao.saveStock(con, stock) == 0 || !inboundItemDao.increaseCompletedQuantity(con, itemId, stock.getQuantity())) {
                 con.rollback();
-                throw new RuntimeException("입고 처리에 실패했습니다.");
+                return false;
             }
             con.commit();
+            return true;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);
@@ -317,24 +364,24 @@ public class InboundService {
         Inbound inbound = findInboundById(id);
         List<InboundItem> inboundItems = findInboundItems(inbound.getId());
         StringBuilder sb = new StringBuilder();
-        sb.append("#########################################");
-        sb.append("              입 고 지 시 서");
+        sb.append("##################################################################################").append("\n");
+        sb.append("                                 입 고 지 시 서").append("\n");
         if(inbound.getUser() instanceof BusinessMan businessMan) {
-            sb.append("화주사: ").append(businessMan.getBusinessName());
+            sb.append("화주사: ").append(businessMan.getBusinessName()).append("\n");
         }
-        sb.append("물류센터: ").append(inbound.getWarehouse().getName());
-        sb.append("입고번호: ").append(inbound.getId());
-        sb.append("공급사: ").append(inbound.getVendor().getName());
+        sb.append("물류센터: ").append(inbound.getWarehouse().getName()).append("\n");
+        sb.append("입고번호: ").append(inbound.getId()).append("\n");
+        sb.append("공급사: ").append(inbound.getVendor().getName()).append("\n");
         if(InboundStatus.COMPLETED.equals(inbound.getStatus())) {
-            sb.append("입고완료일자: ").append(formatDateString(inbound.getInboundCompletedDate()));
+            sb.append("입고완료일자: ").append(formatDateString(inbound.getInboundCompletedDate())).append("\n");
         } else {
-            sb.append("입고예정일자: ").append(formatDateString(inbound.getInboundExpectedDate()));
+            sb.append("입고예정일자: ").append(formatDateString(inbound.getInboundExpectedDate())).append("\n");
         }
-        sb.append("출력 일시: ").append(formatDateString(LocalDateTime.now()));
-        sb.append(String.format("%5s %15s %30s %8s %8s", "No", "상품코드", "상품명", "요청수량", "완료수량"));
-        sb.append("---------------------------------------------------------------------------------------------------------");
+        sb.append("출력 일시: ").append(formatDateString(LocalDateTime.now())).append("\n");
+        sb.append(String.format("%-3s %-10s %-30s %-8s %-8s\n", "No", "상품코드", "상품명", "요청수량", "완료수량"));
+        sb.append("---------------------------------------------------------------------------------------------------------").append("\n");
         AtomicInteger noCnt = new AtomicInteger(1);
-        inboundItems.forEach(item -> sb.append(String.format("%5s %15s %30s %8s %8s",
+        inboundItems.forEach(item -> sb.append(String.format("%-3s %-10s %-30s %-8s %-8s\n",
                 noCnt.getAndIncrement(),
                 item.getProduct().getCode(),
                 item.getProduct().getName(),
@@ -348,14 +395,14 @@ public class InboundService {
      *
      * @param id 입고 id
      */
-    public void approvalInbound(int id) {
+    public boolean approvalInbound(int id) {
         try (Connection con = DriverManagerDBConnectionUtil.getInstance().getConnection()) {
             Inbound inbound = inboundDao.findById(con, id).orElseThrow(
-                    () -> new RuntimeException("존재하지 않는 입고 요청입니다."));;
+                    () -> new IllegalStateException("존재하지 않는 입고 요청입니다."));;
             if(!InboundStatus.PENDING.equals(inbound.getStatus())) {
-                throw new RuntimeException("입고 예정 건만 승인 처리 가능합니다.");
+                throw new IllegalArgumentException("입고 예정 건만 승인 처리 가능합니다.");
             } else {
-                updateInboundStatus(con, id, InboundStatus.APPROVED);
+                return updateInboundStatus(con, id, InboundStatus.APPROVED);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -411,7 +458,7 @@ public class InboundService {
      * @param id 입고 id
      * @param status 변경할 입고 상태
      */
-    private void updateInboundStatus(Connection con, int id, InboundStatus status) {
+    private boolean updateInboundStatus(Connection con, int id, InboundStatus status) {
         try {
             con.setAutoCommit(false);
             boolean result = inboundDao.updateStatus(con, id, status);
@@ -419,8 +466,8 @@ public class InboundService {
                 con.commit();
             } else {
                 con.rollback();
-                throw new RuntimeException("입고 상태 변경을 실패했습니다.");
             }
+            return result;
         } catch (SQLException e) {
             transactionRollback(con);
             throw new RuntimeException(e);

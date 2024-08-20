@@ -17,7 +17,7 @@ public class InboundDto {
 
     public Inbound toCreateInbound() {
         return Inbound.builder()
-                .user(User.builder().id(userId).build())
+                .user(new User(userId))
                 .warehouse(Warehouse.builder().id(warehouseId).build())
                 .vendor(new Vendor(vendorId))
                 .inboundExpectedDate(inboundExpectedDate)

@@ -8,6 +8,7 @@ import lombok.Getter;
 public class InboundItemDto {
 
     private int productId;
+    private String productName;
     private int requestQuantity;
 
 }
