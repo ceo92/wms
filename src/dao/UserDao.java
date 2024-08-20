@@ -55,7 +55,6 @@ public class UserDao {
     if (user instanceof DeliveryMan deliveryMan){
       subTableSql = "insert into delivery_man values(? ,? , ? , ?)";
       subTablePstmt = con.prepareStatement(subTableSql);
-
       subTablePstmt.setInt(1 , generatedId); //슈퍼타입테이블의 Generated된 PK 값 할당
       subTablePstmt.setString(2 , deliveryMan.getDeliveryManNum());
       subTablePstmt.setString(3 , deliveryMan.getCarNum());

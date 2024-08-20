@@ -28,7 +28,6 @@ public class UserService {
   private static final SHA256 sha256 = new SHA256();
   private static User loginUser = null;
 
-
   public void logout(){
     loginUser = null;
   }

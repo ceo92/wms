@@ -46,6 +46,9 @@ public DeliveryMan(String name, String phoneNumber, String loginEmail, String pa
 
 
 
+
+
+
   public void changeBasicInformation(String name, String phoneNumber , String deliveryManNum , String carNum) {
     super.changeBasicInformation(name , phoneNumber);
     setDeliveryManNum(deliveryManNum);
