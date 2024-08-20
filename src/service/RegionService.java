@@ -8,37 +8,36 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class RegionService {
-  private final RegionDao regionDao = new RegionDao();
 
-  public List<Region> findAllRegions() {
-    Connection con = null;
-    try {
-      con = getConnection();
-      con.setReadOnly(true);
-      return regionDao.findAll(con);
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }finally {
-      closeConnection(con);
+    private final RegionDao dao = new RegionDao();
+
+    public List<Region> findAllRegions() {
+        Connection con = getConnection();
+        try {
+            con.setReadOnly(true);
+            List<Region> regions = dao.findAll(con);
+            con.setReadOnly(false);
+            return regions;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-  }
-
-  public Region findRegionById(int id) {
-    Connection con = null;
-    try {
-      con = getConnection();
-      con.setReadOnly(true);
-      return regionDao.findById(con, id).orElseThrow(() -> new RuntimeException("존재하지 않는 지역입니다."));
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }finally {
-      closeConnection(con);
+  
+    public Region findRegionById(int id) {
+        Connection con = getConnection();
+        try {
+            con.setReadOnly(true);
+            Region region = dao.findById(con, id).orElseThrow(
+                    () -> new RuntimeException("존재하지 않는 지역입니다."));
+            con.setReadOnly(false);
+            return region;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-  }
-
+  
   private static Connection getConnection(){
     return DBConnectionUtil.getConnection();
-    //return HikariCpDBConnectionUtil.getInstance().getConnection();
   }
 
   private static void closeConnection(Connection con){
@@ -48,11 +47,12 @@ public class RegionService {
         if (con.isReadOnly()){
           con.setReadOnly(false);
         }
-        con.close(); //Connection 닫기
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+          throw new RuntimeException(e);
+        }
     }
-  }
+    
 
 }

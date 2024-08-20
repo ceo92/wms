@@ -1,5 +1,6 @@
 package dao;
 
+import domain.Product;
 import domain.Stock;
 import dto.StockDto;
 import dto.StockEditDto;
@@ -11,8 +12,47 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class StockDao {
+
+    public Optional<Stock> findById(Connection con, int id) {
+        String query = new StringBuilder()
+                .append("SELECT s.id, p.code, p.name, w.name, ss.name, cost_price, quantity, manufactured_date, expiration_date ")
+                .append("FROM stock s ")
+                .append("JOIN product p ON s.product_id = p.id ")
+                .append("JOIN stock_section ss ON s.id = ss.id ")
+                .append("JOIN warehouse w ON ss.warehouse_id = w.id ")
+                .append("ORDER BY s.id ").toString();
+
+        List<StockDto> stocks = new ArrayList<>();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs != null && rs.next()) {
+                Stock stock = Stock.builder()
+                        .id(rs.getInt("s.id"))
+                        .product(Product.builder()
+                                .id(rs.getInt("p.id"))
+                                .name(rs.getString("p.name"))
+                                .build())
+                        .height(rs.getDouble("p.height"))
+                        .width(rs.getDouble("p.width"))
+                        .quantity(rs.getInt("quantity"))
+                        .manufacturedDate(rs.getTimestamp("manufactured_date").toLocalDateTime())
+                        .expirationDate(rs.getTimestamp("expiration_date").toLocalDateTime())
+                        .build();
+                return Optional.of(stock);
+            } else {
+                return Optional.empty();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<StockDto> findAll(Connection con) {
         String query = new StringBuilder()
                 .append("SELECT s.id, p.code, p.name, w.name, ss.name, cost_price, quantity, manufactured_date, expiration_date ")
@@ -146,6 +186,100 @@ public class StockDao {
                             .productName(rs.getString("p.name"))
                             .warehouseName(rs.getString("w.name"))
                             .sectionName(rs.getString("ss.name"))
+                            .costPrice(rs.getDouble("cost_price"))
+                            .quantity(rs.getInt("quantity"))
+                            .manufacturedDate(rs.getTimestamp("manufactured_date").toLocalDateTime())
+                            .expirationDate(rs.getTimestamp("expiration_date").toLocalDateTime())
+                            .build());
+                }
+            }
+            return stocks;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<StockDto> findByParentIdAndManagerId(Connection con, Integer userId, Integer categoryId) {
+        String query = new StringBuilder()
+                .append("WITH category_stock AS ( ")
+                .append("SELECT s.id AS id, p.code AS code, p.name AS product_name, w.name AS warehouse_name, ss.name AS section_name, cost_price, quantity, manufactured_date, expiration_date, manager_id ")
+                .append("FROM stock s ")
+                .append("JOIN product p ON s.product_id = p.id ")
+                .append("JOIN stock_section ss ON s.id = ss.id ")
+                .append("JOIN warehouse w ON ss.warehouse_id = w.id ")
+                .append("JOIN product_category pc ON p.category_id = pc.id ")
+                .append("WHERE pc.id = ? OR pc.parent_id = ? OR pc.parent_id ")
+                .append("IN ( ")
+                .append("SELECT id FROM product_category WHERE parent_id = ? ) ")
+                .append("ORDER BY s.id ")
+                .append(") SELECT id, code, product_name, warehouse_name, section_name, cost_price, quantity, manufactured_date, expiration_date ")
+                .append("FROM category_stock ")
+                .append("WHERE manager_id = ? ").toString();
+
+        List<StockDto> stocks = new ArrayList<>();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, categoryId);
+            pstmt.setInt(2, categoryId);
+            pstmt.setInt(3, categoryId);
+            pstmt.setInt(4, userId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    stocks.add(StockDto.builder()
+                            .id(rs.getInt("id"))
+                            .productCode(rs.getString("code"))
+                            .productName(rs.getString("product_name"))
+                            .warehouseName(rs.getString("warehouse_name"))
+                            .sectionName(rs.getString("section_name"))
+                            .costPrice(rs.getDouble("cost_price"))
+                            .quantity(rs.getInt("quantity"))
+                            .manufacturedDate(rs.getTimestamp("manufactured_date").toLocalDateTime())
+                            .expirationDate(rs.getTimestamp("expiration_date").toLocalDateTime())
+                            .build());
+                }
+            }
+            return stocks;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<StockDto> findByParentIdAndBusinessManId(Connection con, Integer userId, Integer categoryId) {
+        String query = new StringBuilder()
+                .append("WITH category_stock AS ( ")
+                .append("SELECT s.id AS id, p.code AS code, p.name AS product_name, w.name AS warehouse_name, ss.name AS section_name, cost_price, quantity, manufactured_date, expiration_date, business_man_id ")
+                .append("FROM stock s ")
+                .append("JOIN product p ON s.product_id = p.id ")
+                .append("JOIN stock_section ss ON s.id = ss.id ")
+                .append("JOIN warehouse w ON ss.warehouse_id = w.id ")
+                .append("JOIN product_category pc ON p.category_id = pc.id ")
+                .append("WHERE pc.id = ? OR pc.parent_id = ? OR pc.parent_id ")
+                .append("IN ( ")
+                .append("SELECT id FROM product_category WHERE parent_id = ? ) ")
+                .append("ORDER BY s.id ")
+                .append(") SELECT id, code, product_name, warehouse_name, section_name, cost_price, quantity, manufactured_date, expiration_date ")
+                .append("FROM category_stock ")
+                .append("WHERE business_man_id = ? ").toString();
+
+        List<StockDto> stocks = new ArrayList<>();
+
+        try (PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, categoryId);
+            pstmt.setInt(2, categoryId);
+            pstmt.setInt(3, categoryId);
+            pstmt.setInt(4, userId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    stocks.add(StockDto.builder()
+                            .id(rs.getInt("id"))
+                            .productCode(rs.getString("code"))
+                            .productName(rs.getString("product_name"))
+                            .warehouseName(rs.getString("warehouse_name"))
+                            .sectionName(rs.getString("section_name"))
                             .costPrice(rs.getDouble("cost_price"))
                             .quantity(rs.getInt("quantity"))
                             .manufacturedDate(rs.getTimestamp("manufactured_date").toLocalDateTime())

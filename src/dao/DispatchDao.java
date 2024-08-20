@@ -1,5 +1,6 @@
 package dao;
 
+import connection.HikariCpDBConnectionUtil;
 import domain.DeliveryMan;
 import domain.Dispatch;
 import domain.DispatchType;
@@ -18,7 +19,7 @@ public class DispatchDao {
   public List<Dispatch> findNonAssignedDispatches() throws SQLException {
     String sql = "SELECT * FROM dispatch WHERE dispatchType = ?";
     List<Dispatch> dispatches = new ArrayList<>();
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setString(1, DispatchType.NONASSIGNED.name());
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -38,7 +39,7 @@ public class DispatchDao {
   public List<Dispatch> findAssignedDispatches() throws SQLException {
     String sql = "SELECT * FROM dispatch WHERE dispatchType = ?";
     List<Dispatch> dispatches = new ArrayList<>();
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setString(1, DispatchType.ASSIGNED.name());
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -57,7 +58,7 @@ public class DispatchDao {
   // ID로 배차 정보 조회
   public Dispatch findAssignedDispatchById(int dispatchId) throws SQLException {
     String sql = "SELECT * FROM dispatch WHERE id = ?";
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setInt(1, dispatchId);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -75,10 +76,10 @@ public class DispatchDao {
   // 배차 정보 업데이트 (배차 상태 변경 및 배송기사 변경)
   public void updateDispatch(Dispatch dispatch) throws SQLException {
     String sql = "UPDATE dispatch SET dispatchType = ?, delivery_man_id = ? WHERE id = ?";
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setString(1, dispatch.getDispatchType().name());
-      pstmt.setInt(2, dispatch.getDelivery_man().getRoleId());
+      pstmt.setInt(2, dispatch.getDelivery_man().getId());
       pstmt.setInt(3, dispatch.getId());
       pstmt.executeUpdate();
     } catch (SQLException e) {
@@ -90,7 +91,7 @@ public class DispatchDao {
   // 배차 취소 (배차 상태를 배차미할당으로 변경)
   public void cancelDispatch(int dispatchId) throws SQLException {
     String sql = "UPDATE dispatch SET dispatchType = ? WHERE id = ?";
-    try (Connection con = Database.getConnection();
+    try (Connection con = HikariCpDBConnectionUtil.getConnection();
         PreparedStatement pstmt = con.prepareStatement(sql)) {
       pstmt.setString(1, DispatchType.NONASSIGNED.name());
       pstmt.setInt(2, dispatchId);

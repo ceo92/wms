@@ -4,13 +4,14 @@ import domain.*;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class WarehouseDao {
-    public boolean save(Connection con, Warehouse warehouse) {
+    public int save(Connection con, Warehouse warehouse) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INFO warehouse(")
+        sb.append("INSERT INTO warehouse(")
                 .append("manager_id, type_id, code, name, region_id, detail_address, contact, max_capacity, price_per_area, reg_date")
                 .append(") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try(PreparedStatement pstmt = con.prepareStatement(sb.toString(), Statement.RETURN_GENERATED_KEYS)) {
@@ -23,9 +24,15 @@ public class WarehouseDao {
             pstmt.setString(7, warehouse.getContact());
             pstmt.setDouble(8, warehouse.getMaxCapacity());
             pstmt.setDouble(9, warehouse.getPricePerArea());
-            pstmt.setObject(10, warehouse.getRegDate());
+            pstmt.setObject(10, java.sql.Timestamp.valueOf(warehouse.getRegDate()));
             int affectedRows = pstmt.executeUpdate();
-            return affectedRows != 0;
+            if(affectedRows == 1) {
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs != null && rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+            throw new SQLException("WarehouseDao.save fail");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -34,20 +41,12 @@ public class WarehouseDao {
     public Optional<Warehouse> findById(Connection con, int id) {
         String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
                 + " WHERE w.id = ? AND w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
-        try {
-            PreparedStatement pstmt = con.prepareStatement(sql);
+        try(PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if(rs != null && rs.next()) {
                 Warehouse warehouse = Warehouse.builder()
                         .id(rs.getInt("w.id"))
-                        .manager(User.builder()
-                                .id(rs.getInt("u.id"))
-                                .phoneNumber(rs.getString("u.phone_number"))
-                                .loginId(rs.getString("u.login_id"))
-                                .roleType(convertStringToRoleType(rs.getString("u.role_type")))
-                                .build()
-                        )
                         .type(new WarehouseType(
                                 rs.getInt("wt.id"),
                                 rs.getString("wt.name")
@@ -64,8 +63,8 @@ public class WarehouseDao {
                         .contact(rs.getString("w.contact"))
                         .maxCapacity(rs.getDouble("w.max_capacity"))
                         .pricePerArea(rs.getDouble("w.price_per_area"))
-                        .regDate(rs.getTimestamp("w.reg_date").toLocalDateTime())
-                        .modDate(rs.getTimestamp("w.mod_date").toLocalDateTime())
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
                         .build();
                 return Optional.of(warehouse);
             } else {
@@ -76,28 +75,209 @@ public class WarehouseDao {
         }
     }
 
+    public List<Warehouse> findAll(Connection con) {
+        String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
+                + " WHERE w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
+        List<Warehouse> warehouseList = new ArrayList<>();
+        try(Statement stmt = con.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while(rs != null && rs.next()) {
+                Warehouse warehouse = Warehouse.builder()
+                        .id(rs.getInt("w.id"))
+                        .type(new WarehouseType(
+                                rs.getInt("wt.id"),
+                                rs.getString("wt.name")
+                        ))
+                        .code(rs.getString("w.code"))
+                        .name(rs.getString("w.name"))
+                        .region(Region.builder()
+                                .id(rs.getInt("r.id"))
+                                .code(rs.getString("r.code"))
+                                .name(rs.getString("r.name"))
+                                .build()
+                        )
+                        .detailAddress(rs.getString("w.detail_address"))
+                        .contact(rs.getString("w.contact"))
+                        .maxCapacity(rs.getDouble("w.max_capacity"))
+                        .pricePerArea(rs.getDouble("w.price_per_area"))
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
+                        .build();
+                warehouseList.add(warehouse);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return warehouseList;
+    }
+
     public List<Warehouse> findAllByName(Connection con, String name) {
-        return null;
+        String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
+                + " WHERE w.name LIKE ? AND w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
+        List<Warehouse> warehouseList = new ArrayList<>();
+        try(PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setString(1,"%" + name + "%");
+            ResultSet rs = pstmt.executeQuery();
+            while(rs != null && rs.next()) {
+                Warehouse warehouse = Warehouse.builder()
+                        .id(rs.getInt("w.id"))
+                        .type(new WarehouseType(
+                                rs.getInt("wt.id"),
+                                rs.getString("wt.name")
+                        ))
+                        .code(rs.getString("w.code"))
+                        .name(rs.getString("w.name"))
+                        .region(Region.builder()
+                                .id(rs.getInt("r.id"))
+                                .code(rs.getString("r.code"))
+                                .name(rs.getString("r.name"))
+                                .build()
+                        )
+                        .detailAddress(rs.getString("w.detail_address"))
+                        .contact(rs.getString("w.contact"))
+                        .maxCapacity(rs.getDouble("w.max_capacity"))
+                        .pricePerArea(rs.getDouble("w.price_per_area"))
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
+                        .build();
+                warehouseList.add(warehouse);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return warehouseList;
     }
 
-    public List<Warehouse> findAllByRegionId(Connection con, int id) {
-        return null;
+    public List<Warehouse> findAllByRegionId(Connection con, int regionId) {
+        String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
+                + " WHERE w.region_id = ? AND w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
+        List<Warehouse> warehouseList = new ArrayList<>();
+        try(PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setInt(1, regionId);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs != null && rs.next()) {
+                Warehouse warehouse = Warehouse.builder()
+                        .id(rs.getInt("w.id"))
+                        .type(new WarehouseType(
+                                rs.getInt("wt.id"),
+                                rs.getString("wt.name")
+                        ))
+                        .code(rs.getString("w.code"))
+                        .name(rs.getString("w.name"))
+                        .region(Region.builder()
+                                .id(rs.getInt("r.id"))
+                                .code(rs.getString("r.code"))
+                                .name(rs.getString("r.name"))
+                                .build()
+                        )
+                        .detailAddress(rs.getString("w.detail_address"))
+                        .contact(rs.getString("w.contact"))
+                        .maxCapacity(rs.getDouble("w.max_capacity"))
+                        .pricePerArea(rs.getDouble("w.price_per_area"))
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
+                        .build();
+                warehouseList.add(warehouse);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return warehouseList;
     }
 
-    public List<Warehouse> findAllByTypeId(Connection con, int id) {
-        return null;
+    public List<Warehouse> findAllByTypeId(Connection con, int typeId) {
+        String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
+                + " WHERE w.type_id = ? AND w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
+        List<Warehouse> warehouseList = new ArrayList<>();
+        try(PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setInt(1, typeId);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs != null && rs.next()) {
+                Warehouse warehouse = Warehouse.builder()
+                        .id(rs.getInt("w.id"))
+                        .type(new WarehouseType(
+                                rs.getInt("wt.id"),
+                                rs.getString("wt.name")
+                        ))
+                        .code(rs.getString("w.code"))
+                        .name(rs.getString("w.name"))
+                        .region(Region.builder()
+                                .id(rs.getInt("r.id"))
+                                .code(rs.getString("r.code"))
+                                .name(rs.getString("r.name"))
+                                .build()
+                        )
+                        .detailAddress(rs.getString("w.detail_address"))
+                        .contact(rs.getString("w.contact"))
+                        .maxCapacity(rs.getDouble("w.max_capacity"))
+                        .pricePerArea(rs.getDouble("w.price_per_area"))
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
+                        .build();
+                warehouseList.add(warehouse);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return warehouseList;
     }
 
     public Optional<Warehouse> findByManagerId(Connection con, int managerId) {
-        return null;
+        String sql = "SELECT * FROM warehouse w, user u, warehouse_type wt, region r"
+                + " WHERE w.manager_id = ? AND w.manager_id = u.id AND w.type_id = wt.id AND w.region_id = r.id";
+        try(PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setInt(1, managerId);
+            ResultSet rs = pstmt.executeQuery();
+            if(rs != null && rs.next()) {
+                Warehouse warehouse = Warehouse.builder()
+                        .id(rs.getInt("w.id"))
+                        .type(new WarehouseType(
+                                rs.getInt("wt.id"),
+                                rs.getString("wt.name")
+                        ))
+                        .code(rs.getString("w.code"))
+                        .name(rs.getString("w.name"))
+                        .region(Region.builder()
+                                .id(rs.getInt("r.id"))
+                                .code(rs.getString("r.code"))
+                                .name(rs.getString("r.name"))
+                                .build()
+                        )
+                        .detailAddress(rs.getString("w.detail_address"))
+                        .contact(rs.getString("w.contact"))
+                        .maxCapacity(rs.getDouble("w.max_capacity"))
+                        .pricePerArea(rs.getDouble("w.price_per_area"))
+                        .regDate(convertToLocalDateTime(rs.getTimestamp("w.reg_date")))
+                        .modDate(convertToLocalDateTime(rs.getTimestamp("w.mod_date")))
+                        .build();
+                return Optional.of(warehouse);
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private RoleType convertStringToRoleType(String roleString) {
-        return switch (roleString) {
-            case "ADMIN" -> RoleType.ADMIN;
-            case "WAREHOUSE_MANAGER" -> RoleType.WAREHOUSE_MANAGER;
-            case "BUSINESS_MAN" -> RoleType.BUSINESS_MAN;
-            default -> RoleType.GUEST;
-        };
+    public List<WarehouseType> findAllWarehouseType(Connection con) {
+        String sql = "SELECT * FROM warehouse_type";
+        List<WarehouseType> types = new ArrayList<>();
+        try(Statement stmt = con.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs != null && rs.next()) {
+                WarehouseType type = new WarehouseType(rs.getInt("id"), rs.getString("name"));
+                types.add(type);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return types;
+    }
+
+    public LocalDateTime convertToLocalDateTime(Timestamp timestamp) {
+        if(timestamp == null) {
+            return null;
+        }
+        return timestamp.toLocalDateTime();
     }
 }
