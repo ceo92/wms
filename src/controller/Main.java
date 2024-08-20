@@ -21,25 +21,31 @@ public class Main {
   private static final RegionService regionService = new RegionService();
 
   public static void main(String[] args) throws IOException {
+
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     System.out.println("Welcome to Money Flow WMS");
-    initializeDefaultUser();
+    //initializeDefaultUser();
+    /*userService.businessManJoin(new BusinessManSaveDto("이경민" , "010-0000-0000" , "kyungmin@naver.com"
+        , "abcd1234!@#$" , "abcd1234!@#$" , "가장 좋아하는 회사는?" , "신세계 아이앤씨" ,
+        "000-00-00000" , "신세계 프로젝트"));*/
     Map<Integer, String> passwordQuestionsMap = initializePasswordQuestions();
     /**
      * 기본 회원 정보 및 ADMIN 초기화 ,이건 DataGrip에서 하자
      */
 
-    User loginUser = null;
     while (true) {
       /**
        * 로그인 여부에 따른 시작 로직(로그인)
        */
+      User loginUser = userService.getLoginUser();
+
       if (loginUser != null){
         authenticate(loginUser, br);
       }
+
       else{
         System.out.println("★★★★★ 원하시는 번호를 입력해주세요 ★★★★★");
-        System.out.println("1. 로그인 페이지 이동 2. 회원가입 페이지 이동 3. Q&A 페이지 이동");
+        System.out.println("1. 로그인 페이지 이동 2. 회원가입 페이지 이동");
         int guestInputNum = Integer.parseInt(br.readLine());
         if (guestInputNum == 1) {
           System.out.println("=".repeat(20) + "로그인 페이지" + "=".repeat(20));
@@ -50,7 +56,16 @@ public class Main {
               String loginEmail = br.readLine();
               System.out.print("비밀번호 입력 : ");
               String password = br.readLine();
-              loginUser = userService.login(loginEmail, password);
+              try {
+                loginUser = userService.login(loginEmail, password);
+                System.out.println();
+                System.out.println("로그인 성공하였습니다");
+                System.out.println();
+                userService.setLoginUser(loginUser);
+              }catch (IllegalArgumentException e){
+                System.out.println(e.getMessage());
+                System.out.println("처음부터 다시 시도하세요`");
+              }
               break;
             case 2:
               System.out.println("이름 입력");
@@ -90,6 +105,7 @@ public class Main {
                 System.out.print("비밀번호 한번 더 입력 : ");
                 String reNewPassword = br.readLine();
                 userService.resetPassword(newPassword , reNewPassword , checkedUser);
+                System.out.println("비밀번호 재설정 성공!!");
               }catch (IllegalArgumentException e){
                 System.out.println(e.getMessage());
                 System.out.println("처음부터 다시 시도해주세요");
@@ -138,6 +154,12 @@ public class Main {
               //사업자 id 리턴
               Integer businessManId = userService.businessManJoin(businessManSaveDto);//회원가입 성공하면 다시 초기 화면으로 돌아가서 로그인 되게끔
               loginUser = userService.findUser(businessManId);
+              userService.setLoginUser(loginUser);
+              System.out.println();
+              System.out.println("회원가입에 성공하였습니다!!");
+              System.out.println();
+              userService.setLoginUser(loginUser);
+
               //사업자 id를 통해 조회
               break;
 
@@ -168,6 +190,10 @@ public class Main {
                   whmPhoneNumber, whmLoginEmail, whmPassword, whmRePassword , passwordQuestionsMap.get(wmPasswordQuestionNum) , wmPasswordAnswer);
               Integer warehouseManagerId = userService.warehouseManagerJoin(warehouseManagerSaveDto);
               loginUser = userService.findUser(warehouseManagerId);
+              System.out.println();
+              System.out.println("회원가입에 성공하였습니다!!");
+              System.out.println();
+              userService.setLoginUser(loginUser);
               break;
 
             case 3:
@@ -196,40 +222,33 @@ public class Main {
               System.out.print("답변을 입력하시오 : ");
               String dmPasswordAnswer = br.readLine();
               System.out.println("담당할 행정구역을 코드 숫자로 입력하세요");
-              int i=0;
               regionService.findAllRegions().stream().filter(r->r.getParentId() == null).forEach(r-> System.out.println(r.getId()+". "+r.getName()));
               int regionParentId = Integer.parseInt(br.readLine());
               String regionParentName = regionService.findRegionById(regionParentId).getName();
               System.out.println(regionParentName +"의 구체적인 지역을 코드 숫자로 입력하세요");
-              regionService.findAllRegions().stream().filter(r->r.getParentId()==regionParentId).forEach(r->System.out.println(r.getId()+". "+r.getName()));
+
+
+              regionService.findAllRegions().stream().filter(r->r.getParentId()!=null).filter(r-> r.getParentId() == regionParentId).forEach(r->System.out.println(r.getId()+". "+r.getName()));
               int regionChildId = Integer.parseInt(br.readLine());
               Region region = regionService.findRegionById(regionChildId);
 
               DeliveryManSaveDto deliveryManSaveDto = new DeliveryManSaveDto(dmName, dmPhoneNumber,
                   dmLoginEmail, dmPassword, dmRePassword, passwordQuestionsMap.get(dmPasswordQuestionNum),  dmPasswordAnswer ,dmNum, dmCarNum , region);
-              Integer deliveryManId = userService.deliveryManJoin(deliveryManSaveDto);
-              loginUser = userService.findUser(deliveryManId);
+              try {
+                Integer deliveryManId = userService.deliveryManJoin(deliveryManSaveDto);
+                loginUser = userService.findUser(deliveryManId);
+                System.out.println();
+                System.out.println("회원가입에 성공하였습니다!!");
+                System.out.println();
+                userService.setLoginUser(loginUser);
+              }catch (IllegalArgumentException e){
+                System.out.println(e.getMessage());
+                System.out.println();
+              }
               break;
 
             default:
               System.out.println("잘못 입력하였습니다 처음부터 다시 입력해주세요"); //검증 로직
-              break;
-          }
-        } else if (guestInputNum == 3) {
-          System.out.println("=".repeat(20) + "Q&A 게시판" + "=".repeat(20));
-          //for(qna : qnaList){
-          //  System.out.println(qna); 사람들 작성한 qna 리스트 보여짐 , 여기서 페이징 처리하면 좋을듯 ,,
-          //}
-          System.out.println("원하는 서비스의 번호를 입력하세요");
-          System.out.println("1.Q&A 작성  2. 내 Q&A 조회 3. 처음으로 되돌아가기");
-          switch (Integer.parseInt(br.readLine())){
-            case 1:
-              String qna = br.readLine();
-              break;
-            case 2:
-              //qnaService.findQnaList()
-              break;
-            case 3:
               break;
           }
         }
@@ -241,13 +260,42 @@ public class Main {
 
   private static void initializeDefaultUser() {
     userService.businessManJoin(new BusinessManSaveDto("businessManA" , "100-0000-0000" , "businessmanA@naver.com"
-        , "rdA!@$1234198" , "rdA!@$1234198" , "가장 좋아하는 회사는?" , "신세계 아이앤씨" ,
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨" ,
         "000-00-00000" , "신세계A"));
+    userService.businessManJoin(new BusinessManSaveDto("businessManB" , "100-0000-0000" , "businessmanB@naver.com"
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨" ,
+        "000-00-00000" , "신세계B"));
+    userService.businessManJoin(new BusinessManSaveDto("businessManC" , "100-0000-0000" , "businessmanC@naver.com"
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨" ,
+        "000-00-00000" , "신세계C"));
+    userService.businessManJoin(new BusinessManSaveDto("businessManD" , "100-0000-0000" , "businessmanD@naver.com"
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨" ,
+        "000-00-00000" , "신세계D"));
+
     userService.warehouseManagerJoin(new WarehouseManagerSaveDto("warehouseManagerA" , "200-0000-0000" , "warehousemanagerA@naver.com"
-        , "rdA!@$1234198" , "rdA!@$1234198" , "가장 좋아하는 회사는?" , "신세계 아이앤씨"));
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨"));
+    userService.warehouseManagerJoin(new WarehouseManagerSaveDto("warehouseManagerB" , "200-0000-0000" , "warehousemanagerB@naver.com"
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨"));
+    userService.warehouseManagerJoin(new WarehouseManagerSaveDto("warehouseManagerC" , "200-0000-0000" , "warehousemanagerC@naver.com"
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨"));
+    userService.warehouseManagerJoin(new WarehouseManagerSaveDto("warehouseManagerD" , "200-0000-0000" , "warehousemanagerD@naver.com"
+        , "abcd1234@@@!!" , "abcd1234@@@!!" , "가장 좋아하는 회사는?" , "신세계 아이앤씨"));
+
     userService.deliveryManJoin(new DeliveryManSaveDto("deliveryManA","300-0000-0000" , "delivarymanA@naver.com" ,
-        "passwordA@#$23r9" , "passwordA@#$23r9" ,"가장 좋아하는 회사는?"  , "신세계 아이앤씨" ,
-        "" , "333아 3333" , regionService.findRegionById(1)));
+        "abcd1234@@@!!" , "abcd1234@@@!!" ,"가장 좋아하는 회사는?"  , "신세계 아이앤씨" ,
+        "11" , "333아 3333" , regionService.findRegionById(100)));
+    userService.deliveryManJoin(new DeliveryManSaveDto("deliveryManB","300-0000-0000" , "delivarymanB@naver.com" ,
+        "abcd1234@@@!!" , "abcd1234@@@!!" ,"가장 좋아하는 회사는?"  , "신세계 아이앤씨" ,
+        "22" , "333아 3333" , regionService.findRegionById(101)));
+    userService.deliveryManJoin(new DeliveryManSaveDto("deliveryManC","300-0000-0000" , "delivarymanC@naver.com" ,
+        "abcd1234@@@!!" , "abcd1234@@@!!" ,"가장 좋아하는 회사는?"  , "신세계 아이앤씨" ,
+        "33" , "333아 3333" , regionService.findRegionById(102)));
+    userService.deliveryManJoin(new DeliveryManSaveDto("deliveryManD","300-0000-0000" , "delivarymanD@naver.com" ,
+        "abcd1234@@@!!" , "abcd1234@@@!!" ,"가장 좋아하는 회사는?"  , "신세계 아이앤씨" ,
+        "44" , "333아 3333" , regionService.findRegionById(103)));
+
+
+
 
   }
 
@@ -278,7 +326,13 @@ public class Main {
         System.out.println("4. 고객센터");
         System.out.println("5. 재무 관리");
         System.out.println("6. 내 정보 조회");
+        System.out.println("7. 로그아웃");
         int adminNum = Integer.parseInt(br.readLine());
+        if (adminNum == 7){
+          userService.setLoginUser(null);
+          break;
+        }
+        break;
 
         //outBoundController.start(user);
 
@@ -290,7 +344,13 @@ public class Main {
         System.out.println("4. 고객센터");
         System.out.println("5. 재무 관리");
         System.out.println("6. 내 정보 조회");
+        System.out.println("7. 로그아웃");
         int whmNum = Integer.parseInt(br.readLine());
+        if (whmNum == 7){
+          userService.setLoginUser(null);
+          break;
+        }
+        break;
 
       case DELIVERY_MAN:
         System.out.println("어떤 시스템에 접속하시겠습니까?");
@@ -300,7 +360,13 @@ public class Main {
         System.out.println("4. 공지사항 조회");
         System.out.println("5. 문의게시판 조회");
         System.out.println("6. 내 정보 조회");
+        System.out.println("7. 로그아웃");
         int dmNum = Integer.parseInt(br.readLine());
+        if (dmNum == 7){
+          userService.setLoginUser(null);
+          break;
+        }
+        break;
 
       case BUSINESS_MAN:
         System.out.println("어떤 시스템에 접속하시겠습니까?");
@@ -308,8 +374,13 @@ public class Main {
         System.out.println("2. 출고 관리");
         System.out.println("3. 재고 관리");
         System.out.println("4. 고객센터");
+        System.out.println("5. 로그아웃");
         int busNum = Integer.parseInt(br.readLine());
-
+        if (busNum == 5){
+          userService.setLoginUser(null);
+          break;
+        }
+        break;
     }
   }
 }

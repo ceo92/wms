@@ -54,4 +54,7 @@ public class User {
     this.name = name;
     this.phoneNumber = phoneNumber;
   }
+
+  public void logout(User user){
+  }
 }

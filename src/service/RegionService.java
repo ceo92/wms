@@ -1,6 +1,6 @@
 package service;
 
-import connection.HikariCpDBConnectionUtil;
+import connection.DBConnectionUtil;
 import dao.RegionDao;
 import domain.Region;
 import java.sql.Connection;
@@ -37,7 +37,8 @@ public class RegionService {
   }
 
   private static Connection getConnection(){
-    return HikariCpDBConnectionUtil.getInstance().getConnection();
+    return DBConnectionUtil.getConnection();
+    //return HikariCpDBConnectionUtil.getInstance().getConnection();
   }
 
   private static void closeConnection(Connection con){

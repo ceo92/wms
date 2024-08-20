@@ -22,7 +22,6 @@ public class SHA256 {
     }
     return encryptPassword;
   }
-
   public byte[] getSalt() throws NoSuchAlgorithmException {
     SecureRandom random = new SecureRandom();
     byte[] salt = new byte[16];
