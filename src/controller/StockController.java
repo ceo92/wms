@@ -634,7 +634,7 @@ public class StockController {
                     continue;
                 }
 
-                System.out.print("분 입력 (0~59): ");
+                System.out.print("초 입력 (0~59): ");
                 second = br.readLine();
 
                 if (Integer.parseInt(second) < 0 || Integer.parseInt(second) > 59) {
