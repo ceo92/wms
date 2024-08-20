@@ -4,7 +4,6 @@ import dao.DispatchDao;
 import dao.WaybillDao;
 import domain.DeliveryMan;
 import domain.Dispatch;
-import domain.DispatchType;
 import domain.Waybill;
 import java.sql.SQLException;
 import java.util.List;
@@ -43,7 +42,7 @@ public class WaybillService {
       if (waybill != null) {
         Dispatch dispatch = dispatchDao.findAssignedDispatchById(waybill.getDispatchId());
         if (dispatch != null){
-          dispatch.setDelivery_man(newDeliveryMan);
+          dispatch.setDeliveryMan(newDeliveryMan);
           dispatchDao.updateDispatch(dispatch);
         }
         waybillDao.updateWaybill(waybill);
